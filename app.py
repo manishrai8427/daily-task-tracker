@@ -148,9 +148,13 @@ def main():
 }
 .stButton > button:hover, .stDownloadButton > button:hover {
         background-color: #00ffff;
-        color: #0a0a0f; /* darker text for readability */
+        color: #0a0a0f !important; /* ensure button text */
         transform: scale(1.05);
         box-shadow: 0 0 12px #00ffff;
+    }
+    /* also apply text color to inner span so label stays readable */
+    .stButton > button:hover span, .stDownloadButton > button:hover span {
+        color: #0a0a0f !important;
     }
 
 /* ---------- Checkbox label ---------- */
