@@ -159,9 +159,7 @@ def main():
     df = st.session_state.data
 
     current_task_label, current_index = get_current_task_label(df)
-    col_task = st.container()
-    with col_task:
-        st.success(f"✅ Current Task: {current_task_label}")
+    st.success(f"✅ Current Task: {current_task_label}")
 
     col1, col2 = st.columns([2, 1])
 
@@ -206,11 +204,11 @@ def main():
                 st.session_state.reset_flag = True
                 st.rerun()
 
-    st.markdown(f"""
-    <div style="background-color: #001d3d; border-radius: 8px; padding: 12px 16px; margin-top: 25px; color: #f0f8ff; font-style: italic; font-size: 16px; text-align: center;">
-        🌟 <strong>Daily Motivation:</strong> {get_quote_for_date()}
-    </div>
-    """, unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style="background-color: #001d3d; border-radius: 8px; padding: 12px 16px; margin-top: 25px; color: #f0f8ff; font-style: italic; font-size: 16px; text-align: center;">
+            🌟 <strong>Daily Motivation:</strong> {get_quote_for_date()}
+        </div>
+        """, unsafe_allow_html=True)
 
 if __name__ == '__main__':
     main()
