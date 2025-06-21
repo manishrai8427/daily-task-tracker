@@ -153,11 +153,16 @@ def main():
             st.write(" ")
 
     def do_reset():
+        """Clear all check‑boxes and rely on Streamlit’s automatic rerun."""
+        # 1) Reset master list
         st.session_state.status_list = [False] * task_count
-        for i in range(ref_rows):
-            st.session_state.pop(f"cb_{i}", None)
+        # 2) Remove every checkbox widget key so they re‑render unchecked
+        for k in list(st.session_state.keys()):
+            if k.startswith("cb_"):
+                del st.session_state[k]
+        # 3) Persist cleared state
         save_state(st.session_state.status_list)
-        st.session_state["_needs_rerun"] = True
+        # No manual rerun needed ‑ callback completion triggers a rerun automatically
 
     with col_side:
         st.subheader("📊 Progress Tracker")
@@ -183,10 +188,6 @@ def main():
             """,
             unsafe_allow_html=True
         )
-
-    if st.session_state.get("_needs_rerun"):
-        st.session_state.pop("_needs_rerun")
-        st.experimental_rerun()
 
 if __name__ == "__main__":
     main()
