@@ -134,21 +134,25 @@ def main():
     background: transparent !important;
 }
 
-.stButton > button, .stDownloadButton > button {
-    background: linear-gradient(145deg, #1c1b2a, #2a2a3d);
-    color: #00ffff;
-    border: 1px solid #00ffff;
-    border-radius: 10px;
-    font-weight: bold;
-    padding: 10px 20px;
-    transition: all 0.25s ease;
+.stButton > button:focus,
+.stDownloadButton > button:focus,
+.stButton > button:active,
+.stDownloadButton > button:active {
+    background: rgba(0,255,255,0.15);
+    border-color: #00ffff !important;
+    color: #00ffff !important;
+    box-shadow: 0 0 14px #00ffff inset;
     outline: none;
 }
-.stButton > button:hover, .stDownloadButton > button:hover {
-    background: rgba(0, 255, 255, 0.08);
+.stButton > button:focus,
+.stDownloadButton > button:focus,
+.stButton > button:active,
+.stDownloadButton > button:active {
+    background: rgba(0,255,255,0.15);
+    border-color: #00ffff !important;
     color: #00ffff !important;
-    border-color: #00ffff;
-    box-shadow: 0 0 14px #00ffff;
+    box-shadow: 0 0 14px #00ffff inset;
+    outline: none;
 }
 .stButton > button:hover span, .stDownloadButton > button:hover span {
     color: #00ffff !important;
