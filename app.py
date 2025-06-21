@@ -197,7 +197,7 @@ def main():
         for _ in range(reference_rows - task_count):
             st.write(" ")
 
-        def do_reset():
+            def do_reset():
         """Clear every checkbox safely, persist, then trigger a clean rerun."""
         # 1) Reset the master list
         st.session_state.status_list = [False] * task_count
