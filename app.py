@@ -81,6 +81,10 @@ def main():
     if "data" not in st.session_state:
         st.session_state.data = initial_data.copy()
 
+    if "reset_triggered" in st.session_state and st.session_state.reset_triggered:
+        st.session_state.data['Status'] = [False] * len(st.session_state.data)
+        st.session_state.reset_triggered = False
+
     df = st.session_state.data
 
     col1, col2 = st.columns([2, 1])
@@ -104,7 +108,7 @@ def main():
                     unsafe_allow_html=True
                 )
 
-            checkbox = st.checkbox(label, value=df.loc[i, 'Status'], key=i)
+            checkbox = st.checkbox(label, value=df.loc[i, 'Status'], key=f"checkbox_{i}")
             updated_status.append(checkbox)
 
         st.session_state.data['Status'] = updated_status
@@ -129,7 +133,7 @@ def main():
             )
         with colB:
             if st.button("🔄 Reset Tasks"):
-                st.session_state.data['Status'] = [False] * len(df)
+                st.session_state.reset_triggered = True
                 st.rerun()
 
 if __name__ == '__main__':
