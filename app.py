@@ -145,12 +145,18 @@ def main():
         with colA:
             st.download_button("📄 Export as CSV", data=csv_data, file_name="daily_schedule.csv", mime="text/csv")
         with colB:
-            if st.button("🔄 Reset Tasks"):
-                for i in range(task_count):
-                    st.session_state[f"cb_{i}"] = False
+            def reset_tasks():
+                """Clear all check‑boxes safely and rerun."""
+                # Remove widget states for every checkbox
+                for key in list(st.session_state.keys()):
+                    if key.startswith("cb_"):
+                        del st.session_state[key]
+                # Reset master list and persist
                 st.session_state.status_list = [False] * task_count
                 save_state(st.session_state.status_list)
                 st.experimental_rerun()
+
+            st.button("🔄 Reset Tasks", on_click=reset_tasks)
 
         st.markdown(
             f"""
