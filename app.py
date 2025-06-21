@@ -4,12 +4,6 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import pytz  # Using pytz for timezone support
-import os
-import pickle
-
-# File to store persistent data
-SAVE_FILE = "task_status.pkl"
-SCHEDULE_VERSION = "v2"  # increment this on every major schedule change
 
 # Updated task data with timings, activity, and notes
 initial_data = pd.DataFrame({
@@ -49,8 +43,7 @@ initial_data = pd.DataFrame({
         'Skill-building or game time',
         'Aim for 8–9 hours of sleep'
     ],
-    'Status': [False]*10,
-    'Version': [SCHEDULE_VERSION]*10
+    'Status': [False]*10
 })
 
 TIME_FORMAT = "%H:%M"
@@ -87,27 +80,12 @@ def is_current_task(start, end):
     now = datetime.now(pytz.timezone("Asia/Kolkata")).time()
     return start <= now <= end if start and end else False
 
-def load_saved_data():
-    if os.path.exists(SAVE_FILE):
-        with open(SAVE_FILE, 'rb') as f:
-            saved_df = pickle.load(f)
-        # If version changed or structure changed
-        if 'Version' not in saved_df.columns or not (saved_df['Version'] == SCHEDULE_VERSION).all():
-            os.remove(SAVE_FILE)
-            return initial_data.copy()
-        return saved_df
-    return initial_data.copy()
-
-def save_data(df):
-    with open(SAVE_FILE, 'wb') as f:
-        pickle.dump(df, f)
-
 def main():
     st.set_page_config(page_title="Task Dashboard", layout="wide")
     st.title("🗓️ Full Daily Task Tracker")
 
     if "data" not in st.session_state:
-        st.session_state.data = load_saved_data()
+        st.session_state.data = initial_data.copy()
 
     if st.session_state.get("reset_flag", False):
         st.session_state.reset_flag = False
@@ -115,7 +93,6 @@ def main():
         for key in list(st.session_state.keys()):
             if key.startswith("checkbox_"):
                 del st.session_state[key]
-        save_data(st.session_state.data)
         st.rerun()
 
     df = st.session_state.data
@@ -153,7 +130,6 @@ def main():
                 )
 
         df['Status'] = updated_status
-        save_data(df)
 
     with col2:
         st.subheader("📊 Progress Tracker")
@@ -177,14 +153,6 @@ def main():
             if st.button("🔄 Reset Tasks"):
                 st.session_state.reset_flag = True
                 st.rerun()
-
-        # Optional manual reset to force use of initial_data
-        if st.button("⛘️ Force Reset to New Schedule"):
-            if os.path.exists(SAVE_FILE):
-                os.remove(SAVE_FILE)
-            st.session_state.data = initial_data.copy()
-            save_data(st.session_state.data)
-            st.rerun()
 
 if __name__ == '__main__':
     main()
