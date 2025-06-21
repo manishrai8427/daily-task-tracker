@@ -74,7 +74,7 @@ MOTIVATION_QUOTES = [
     "Focus on goals, not obstacles.", "Push through. You are doing great.",
     "Consistency beats perfection.", "Every moment is a fresh start.",
     "You are your only limit.", "Stay focused and never give up.",
-    "Turn your dreams into plans.",
+    "Turn your dreams into plans."
 ]
 
 # ─────────────────── Helper Functions ───────────────────
@@ -139,56 +139,54 @@ def main():
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
-    st.title("🗓️ Full Daily Task Tracker")
-    st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
+    st.title("🗓️ Full Daily Task Tracker")
+    st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
 
     col_tasks, col_side = st.columns([2, 1])
 
     with col_tasks:
-        st.subheader("📋 Timings & Notes")
+        st.subheader("📋 Timings & Notes")
         for i, row in schedule_df.iterrows():
             label = f"{row['Time']} — {row['Task']} ({row['Notes']})"
             st.session_state.status_list[i] = st.checkbox(label, value=st.session_state.status_list[i], key=f"cb_{i}")
         for _ in range(ref_rows - task_count):
-            st.write(" ")
+            st.write(" ")
 
     def do_reset():
-        """Clear all check‑boxes and refresh UI on next cycle."""
         st.session_state.status_list = [False] * task_count
-        for k in list(st.session_state.keys()):
-            if k.startswith("cb_"):
-                del st.session_state[k]
+        for i in range(ref_rows):
+            st.session_state.pop(f"cb_{i}", None)
         save_state(st.session_state.status_list)
         st.session_state["_needs_rerun"] = True
 
-        st.session_state["_needs_rerun"] = True
-
     with col_side:
-        st.subheader("📊 Progress Tracker")
+        st.subheader("📊 Progress Tracker")
         completed = sum(st.session_state.status_list)
         pct = (completed / task_count) * 100 if task_count else 0
-        st.metric("🌟 Progress", f"{completed}/{task_count} tasks", delta=f"{pct:.2f}%")
+        st.metric("🌟 Progress", f"{completed}/{task_count} tasks", delta=f"{pct:.2f}%")
         st.progress(pct / 100)
 
         colA, colB = st.columns(2)
         with colA:
             csv_bytes = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode()
-            st.download_button("📄 Export as CSV", data=csv_bytes, file_name="daily_schedule.csv", mime="text/csv")
+            st.download_button("📄 Export as CSV", data=csv_bytes, file_name="daily_schedule.csv", mime="text/csv")
         with colB:
-            st.button("🔄 Reset Tasks", on_click=do_reset)
+            st.button("🔄 Reset Tasks", on_click=do_reset)
 
         st.markdown(
             f"""
             <div style="background:#001d3d;border-radius:8px;padding:20px;margin-top:25px;
                         color:#f0f8ff;font-style:italic;font-size:18px;text-align:center;
                         min-height:120px;display:flex;align-items:center;justify-content:center;">
-                🌟 <strong>Daily Motivation:</strong> {quote_for_today()}
+                🌟 <strong>Daily Motivation:</strong> {quote_for_today()}
             </div>
             """,
             unsafe_allow_html=True
         )
 
-    # ── Persist state & optional rerun ──
-    save_state(st.session_state.status_list)
-    if st.session_state.pop("_needs_rerun", False):
+    if st.session_state.get("_needs_rerun"):
+        st.session_state.pop("_needs_rerun")
         st.experimental_rerun()
+
+if __name__ == "__main__":
+    main()
