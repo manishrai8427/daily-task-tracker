@@ -118,12 +118,19 @@ def main():
         st.progress(percentage / 100)
 
         csv = df.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Export as CSV",
-            data=csv,
-            file_name="daily_schedule.csv",
-            mime='text/csv'
-        )
+
+        colA, colB = st.columns(2)
+        with colA:
+            st.download_button(
+                label="📥 Export as CSV",
+                data=csv,
+                file_name="daily_schedule.csv",
+                mime='text/csv'
+            )
+        with colB:
+            if st.button("🔄 Reset Tasks"):
+                st.session_state.data['Status'] = [False] * len(df)
+                st.experimental_rerun()
 
 if __name__ == '__main__':
     main()
