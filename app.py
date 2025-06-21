@@ -238,7 +238,20 @@ def main():
         with colB:
             st.button("🔄 Reset Tasks", on_click=reset_tasks)
 
-        # Motivation quote card
+                # Motivation quote card
         st.markdown(
             f"""
             <div style="
+                background-color:#f0f2f6;
+                border-left: 6px solid #007acc;
+                padding: 1rem;
+                border-radius: 0.5rem;
+                margin-top: 1rem;
+                font-style: italic;
+                color: #333;
+            ">
+                💡 <b>Motivation:</b> {quote_for_today()}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
