@@ -89,8 +89,9 @@ def load_saved_data():
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE, 'rb') as f:
             saved_df = pickle.load(f)
-        # check if task data structure changed (by comparing time/task)
+        # If structure changed, remove old file and return new data
         if not saved_df[['Time', 'Task']].equals(initial_data[['Time', 'Task']]):
+            os.remove(SAVE_FILE)
             return initial_data.copy()
         return saved_df
     return initial_data.copy()
