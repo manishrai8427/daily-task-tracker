@@ -1,195 +1,239 @@
+import os
+import json
+import hashlib
+from datetime import datetime
+import calendar
+
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 import pytz
-import calendar
-import hashlib
-import json
-import os
 
-# ─────── Configurations ───────
-STATE_FILE = "task_state.json"
+# ─────── Config ──────
 TZ = pytz.timezone("Asia/Kolkata")
+STATE_FILE = "task_state.json"
 TIME_FORMAT = "%H:%M"
 
-# ─────── Task Templates ───────
+# ─────── Schedule Data ──────
 weekday_data = pd.DataFrame({
-    'Time': [
-        '07:00–08:00', '08:00–10:00', '10:00–13:00',
-        '13:00–15:00', '15:00–17:30', '17:30–18:00',
-        '18:00–20:00', '20:00–21:00', '21:00–22:00',
-        '22:00 onwards'
+    "Time": [
+        "07:00–08:00", "08:00–10:00", "10:00–13:00", "13:00–15:00",
+        "15:00–17:30", "17:30–18:00", "18:00–20:00", "20:00–21:00",
+        "21:00–22:00", "22:00 onwards",
     ],
-    'Task': [
-        'Morning Routine', 'Breakfast & Personal Prep', 'Work Block 1',
-        'Lunch & Short Walk/Break', 'Work Block 2', 'Next Day Planning',
-        'Time With Family', 'Workout/Gaming', 'Learning/Gaming', 'Sleep'
+    "Task": [
+        "Morning Routine", "Breakfast & Personal Prep", "Work Block 1",
+        "Lunch & Short Walk/Break", "Work Block 2", "Next Day Planning",
+        "Time With Family", "Workout/Gaming", "Learning/Gaming", "Sleep",
     ],
-    'Notes': [
-        'Light workout, stretch, or walk', 'Ease into the day', '3-hour deep work session',
-        'Digest + light movement', 'Focused task completion', 'Prepare for tomorrow',
-        'Relax and connect', 'Refresh body or enjoy games', 'Skill-building or game time',
-        'Aim for 8–9 hours of sleep'
-    ]
+    "Notes": [
+        "Light workout, stretch, or walk", "Ease into the day",
+        "3-hour deep work session", "Digest + light movement",
+        "Focused task completion", "Prepare for tomorrow", "Relax and connect",
+        "Refresh body / enjoy games", "Skill‑building or game time",
+        "Aim for 8‑9 hours of sleep",
+    ],
 })
 
 sunday_data = pd.DataFrame({
-    'Time': [
-        '08:00–09:00', '09:00–10:00', '10:00–12:00',
-        '12:00–14:00', '14:00–16:00', '16:00–18:00',
-        '18:00–20:00', '20:00–22:00', '22:00 onwards'
+    "Time": [
+        "08:00–09:00", "09:00–10:00", "10:00–12:00", "12:00–14:00",
+        "14:00–16:00", "16:00–18:00", "18:00–20:00", "20:00–22:00",
+        "22:00 onwards",
     ],
-    'Task': [
-        'Lazy Morning', 'Family Breakfast', 'Outdoor Fun/TV Time',
-        'Big Lunch + Rest', 'Hobbies/Free Time', 'Light Planning',
-        'Movie or Chill Time', 'Prep for Monday', 'Sleep'
+    "Task": [
+        "Lazy Morning", "Family Breakfast", "Outdoor Fun / TV Time",
+        "Big Lunch + Rest", "Hobbies / Free Time", "Light Planning",
+        "Movie or Chill Time", "Prep for Monday", "Sleep",
     ],
-    'Notes': [
-        'Wake up slowly', 'Enjoy with family', 'Watch or go outside',
-        'Relax post lunch', 'Any personal fun activity', 'Prepare lightly for week',
-        'Entertainment time', 'Review goals, clothes ready', 'Full rest'
-    ]
+    "Notes": [
+        "Wake up slowly", "Enjoy with family", "Watch or go outside",
+        "Relax post lunch", "Any personal fun activity",
+        "Prepare lightly for week", "Entertainment time",
+        "Review goals, clothes ready", "Full rest",
+    ],
 })
 
-motivation_quotes_list = [
-    "Every day is a new beginning.",
-    "Your potential is endless.",
-    "Do something today your future self will thank you for.",
-    "Small steps every day.",
-    "Dream big. Start small. Act now.",
-    "You’ve got what it takes.",
-    "Wake up with determination. Go to bed with satisfaction.",
-    "You are stronger than you think.",
-    "The key to success is to focus on goals, not obstacles.",
-    "Push through. You are doing great.",
-    "Consistency is more important than perfection.",
-    "Every moment is a fresh beginning.",
-    "You are your only limit.",
-    "Stay focused and never give up.",
+MOTIVATION_QUOTES = [
+    "Every day is a new beginning.", "Your potential is endless.",
+    "Do something today your future self will thank you for.", "Small steps every day.",
+    "Dream big. Start small. Act now.", "You’ve got what it takes.",
+    "Wake up with determination. Go to bed with satisfaction.", "You are stronger than you think.",
+    "Focus on goals, not obstacles.", "Push through. You are doing great.",
+    "Consistency beats perfection.", "Every moment is a fresh start.",
+    "You are your only limit.", "Stay focused and never give up.",
     "Turn your dreams into plans."
 ]
 
-def get_quote_for_date():
-    date_hash = int(hashlib.sha256(datetime.now().date().isoformat().encode()).hexdigest(), 16)
-    return motivation_quotes_list[date_hash % len(motivation_quotes_list)]
+# ─────── Utility Functions ──────
+def quote_for_today():
+    today_iso = datetime.now(TZ).date().isoformat()
+    idx = int(hashlib.sha256(today_iso.encode()).hexdigest(), 16) % len(MOTIVATION_QUOTES)
+    return MOTIVATION_QUOTES[idx]
 
-def parse_time_range(time_range):
-    try:
-        time_range = time_range.replace("–", "-")
-        if "onwards" in time_range:
-            start_str = time_range.replace(" onwards", "").strip()
-            start = datetime.strptime(start_str, TIME_FORMAT).time()
-            return start, datetime.strptime("23:59", TIME_FORMAT).time()
-        if "-" in time_range:
-            start_str, end_str = time_range.split("-")
-        else:
-            return None, None
-        start = datetime.strptime(start_str.strip(), TIME_FORMAT).time()
-        end = datetime.strptime(end_str.strip(), TIME_FORMAT).time()
+def parse_time_range(rng):
+    rng = rng.replace("–", "-")
+    if "onwards" in rng:
+        start = datetime.strptime(rng.replace(" onwards", "").strip(), TIME_FORMAT).time()
+        end = datetime.strptime("23:59", TIME_FORMAT).time()
         return start, end
-    except:
-        return None, None
+    if "-" in rng:
+        start_str, end_str = rng.split("-")
+        return (
+            datetime.strptime(start_str.strip(), TIME_FORMAT).time(),
+            datetime.strptime(end_str.strip(), TIME_FORMAT).time()
+        )
+    return None, None
 
-def get_current_task_label(df):
-    now = datetime.now(TZ).time()
-    for i in range(len(df)):
-        start, end = parse_time_range(df.loc[i, 'Time'])
-        if start and end and start <= now <= end:
-            return f"{df.loc[i, 'Time']} — {df.loc[i, 'Task']}", i
-    return "No active task currently", None
+def current_task_label(df):
+    now_t = datetime.now(TZ).time()
+    for _, row in df.iterrows():
+        start, end = parse_time_range(row["Time"])
+        if start and end and start <= now_t <= end:
+            return f"{row['Time']} — {row['Task']}"
+    return "No active task currently"
 
+# ─────── Persistence ──────
 def load_state(task_count):
-    if os.path.exists(STATE_FILE):
+    if not os.path.exists(STATE_FILE):
+        return [False] * task_count
+    try:
         with open(STATE_FILE, "r") as f:
-            state = json.load(f)
-            return state.get("status", [False] * task_count)
-    return [False] * task_count
+            saved = json.load(f).get("status", [])
+        return (saved + [False] * task_count)[:task_count]
+    except Exception:
+        return [False] * task_count
 
-def save_state(status_list):
+def save_state(state):
     with open(STATE_FILE, "w") as f:
-        json.dump({"status": status_list}, f)
+        json.dump({"status": state}, f)
 
+# ─────── Main App ──────
 def main():
-    st.set_page_config(page_title="Solo Leveling Task Tracker", layout="wide")
+    st.set_page_config(page_title="Daily Task Tracker", layout="wide")
+
     st.markdown("""
-        <style>
-            body {
-                background: linear-gradient(to right, #0f0c29, #302b63, #24243e);
-                color: #f0f0f0;
-            }
-            .stButton>button {
-                background-color: rgba(0, 255, 255, 0.15);
-                color: white;
-                border: 1px solid #0ff;
-                border-radius: 5px;
-            }
-            .stButton>button:hover {
-                background-color: rgba(0, 255, 255, 0.3);
-                color: #000;
-            }
-        </style>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
+/* -------- Gradient dungeon background -------- */
+.stApp {
+    background: linear-gradient(135deg, #0a0a0f 0%, #11132b 40%, #001a33 100%) fixed;
+    font-family: 'Orbitron', sans-serif;
+    color: #e0e0e0;
+}
+.stApp::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 70%);
+    z-index: -1;
+}
+[data-testid="stAppViewContainer"] > .main {
+    background: transparent !important;
+}
+
+/* -------- Progress bar (glowing crystal) -------- */
+.stProgress > div > div > div > div {
+    background: linear-gradient(135deg, rgba(0,255,255,0.6), rgba(0,0,255,0.6));
+    box-shadow: 0 0 20px #00ffff;
+    border-radius: 10px;
+}
+
+/* -------- Buttons -------- */
+.stButton > button, .stDownloadButton > button {
+    background: linear-gradient(145deg, #1c1b2a, #2a2a3d);
+    color: #00ffff;
+    border: 1px solid #00ffff;
+    border-radius: 10px;
+    font-weight: bold;
+    padding: 10px 20px;
+    transition: all 0.25s ease;
+    outline: none;
+}
+.stButton > button:hover, .stDownloadButton > button:hover {
+    background: rgba(0,255,255,0.08);
+    color: #00ffff !important;
+    border-color: #00ffff;
+    box-shadow: 0 0 14px #00ffff;
+}
+.stButton > button:hover span, .stDownloadButton > button:hover span {
+    color: #00ffff !important;
+}
+/* active / focus keep cyan */
+.stButton > button:focus, .stDownloadButton > button:focus,
+.stButton > button:active, .stDownloadButton > button:active {
+    background: rgba(0,255,255,0.08);
+    color: #00ffff !important;
+    border-color: #00ffff !important;
+    box-shadow: 0 0 14px #00ffff inset;
+    outline: none !important;
+}
+
+/* -------- Other text elements -------- */
+.stCheckbox > label { color: #00ffff !important; font-weight: 500; }
+.stMetric label, .stMetric div { color: #00ffff !important; }
+
+h1, h2, h3, h4, h5, h6 {
+    color: #00ffff !important;
+    text-shadow: 0 0 12px #00ffff;
+}
+</style>
     """, unsafe_allow_html=True)
 
-    st.title("⚔️ Solo Leveling Daily Quest Tracker")
-    today = calendar.day_name[datetime.now(TZ).weekday()]
-    df = sunday_data if today == "Sunday" else weekday_data
-    task_count = len(df)
+    is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
+    schedule_df = sunday_data if is_sunday else weekday_data
+    task_count = len(schedule_df)
 
-    if 'status_list' not in st.session_state or len(st.session_state.status_list) != task_count:
+    if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
-    st.success(f"🧭 Current Quest: {get_current_task_label(df)[0]}")
-    col1, col2 = st.columns([2, 1])
-
-    with col1:
-        st.subheader("📝 Daily Quest Log")
+    if st.session_state.get("_do_reset", False):
         for i in range(task_count):
-            label = f"{df.loc[i, 'Time']} — {df.loc[i, 'Task']} ({df.loc[i, 'Notes']})"
-            st.session_state.status_list[i] = st.checkbox(label, value=st.session_state.status_list[i], key=f"cb_{i}")
+            st.session_state[f"cb_{i}"] = False
+        st.session_state["status_list"] = [False] * task_count
+        save_state(st.session_state["status_list"])
+        st.session_state.pop("_do_reset")
 
-    with col2:
-        st.subheader("📈 Progress Board")
+    st.title("👤 Solo Leveling: Daily Task Tracker")
+    st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
+
+    col_tasks, col_side = st.columns([2, 1])
+
+    with col_tasks:
+        st.subheader("📋 Dungeon Timings")
+        for i, row in schedule_df.iterrows():
+            label = f"{row['Time']} — {row['Task']} ({row['Notes']})"
+            checked = st.checkbox(label, value=st.session_state.status_list[i], key=f"cb_{i}")
+            st.session_state.status_list[i] = checked
+
+    with col_side:
+        st.subheader("🔮 Progress Crystal")
         completed = sum(st.session_state.status_list)
         percent = (completed / task_count) * 100
-        st.metric("🧮 Progress", f"{completed}/{task_count} quests", delta=f"{percent:.1f}%")
+        st.metric("👤 Quests Cleared", f"{completed}/{task_count}", delta=f"{percent:.1f}%")
         st.progress(percent / 100)
 
-        csv = df.assign(Status=st.session_state.status_list).to_csv(index=False).encode('utf-8')
-        c1, c2 = st.columns(2)
-        with c1:
-            st.download_button("📤 Export as CSV", data=csv, file_name="quests.csv", mime='text/csv')
-        with c2:
-            if st.button("♻️ Reset Quests"):
-                st.session_state.status_list = [False] * task_count
-                save_state(st.session_state.status_list)
-                st.rerun()
+        def reset_tasks():
+            st.session_state["_do_reset"] = True
 
-        st.markdown(f"""
-        <div style="background: #141e30; padding: 20px; border-radius: 10px; text-align: center; color: #00ffff; font-size: 18px;">
-            ✨ <strong>Daily Buff:</strong> {get_quote_for_date()}
-        </div>
-        """, unsafe_allow_html=True)
+        csv_data = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode("utf-8")
+        colA, colB = st.columns(2)
+        with colA:
+            st.download_button("📄 Export Log", data=csv_data, file_name="daily_schedule.csv", mime="text/csv")
+        with colB:
+            st.button("♻️ Reset Quests", on_click=reset_tasks)
 
-    # ─────── Quest Stats ───────
-    with st.expander("📊 Quest Stats (Analytics)", expanded=False):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("### ✅ Tasks Completed")
-            st.write(f"{completed} out of {task_count} quests cleared.")
-            st.write(f"🧮 Progress: **{percent:.1f}%**")
-
-        with col2:
-            last_checked_time = None
-            for i in reversed(range(task_count)):
-                if st.session_state.status_list[i]:
-                    last_checked_time = datetime.now(TZ).strftime("%I:%M %p")
-                    break
-
-            st.markdown("### 🕒 Last Quest Completion")
-            if last_checked_time:
-                st.write(f"Last quest checked at: **{last_checked_time}**")
-            else:
-                st.write("No quests marked yet today.")
+        st.markdown(
+            f"""
+            <div style='background:#001d3d;border-radius:12px;padding:24px;margin-top:30px;
+                        color:#00e0ff;font-style:italic;font-size:20px;text-align:center;
+                        min-height:130px;display:flex;align-items:center;justify-content:center;
+                        box-shadow:0 0 20px #00e0ff;'>
+                ⚔️ <strong>System Message:</strong> {quote_for_today()}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     save_state(st.session_state.status_list)
 
