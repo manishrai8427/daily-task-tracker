@@ -1,10 +1,10 @@
 """
 Streamlit Web App – Daily Task Tracker
 -------------------------------------
-• Robust state handling (pads/truncates saved check‑box list)
-• Reset, Export CSV, and Motivation visible every day (incl. Sunday)
+• Robust state handling
+• Reset, Export CSV, Motivation visible every day (incl. Sunday)
 • Consistent layout (Sunday padded to weekday height)
-• Reset clears **all** check‑boxes and refreshes UI cleanly (no warnings)
+• Reset clears **all** check‑boxes in a single click without warnings
 """
 
 import os
@@ -131,19 +131,34 @@ def save_state(state):
 def main():
     st.set_page_config(page_title="Daily Task Tracker", layout="wide")
 
+    # Handle deferred reset flag BEFORE anything else
+    if st.session_state.get("_reset_flag"):
+        # Clear all checkbox keys and status list
+        for key in list(st.session_state.keys()):
+            if key.startswith("cb_") or key == "status_list":
+                del st.session_state[key]
+        # Persist blank state (choose weekday row count for max safety)
+        save_state([False] * len(weekday_data))
+        st.session_state.pop("_reset_flag")
+        st.experimental_rerun()
+
+    # Determine schedule for today
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data if is_sunday else weekday_data
     task_count = len(schedule_df)
     ref_rows = len(weekday_data)
 
+    # Initialise / correct session state length
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
+    # ── UI: Header ─────────────────────────────────────────
     st.title("🗓️ Full Daily Task Tracker")
     st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
 
     col_tasks, col_side = st.columns([2, 1])
 
+    # ── Task Checkboxes ────────────────────────────────────
     with col_tasks:
         st.subheader("📋 Timings & Notes")
         for i, row in schedule_df.iterrows():
@@ -152,18 +167,11 @@ def main():
         for _ in range(ref_rows - task_count):
             st.write(" ")
 
-    def do_reset():
-        """Clear all check‑boxes and rely on Streamlit’s automatic rerun."""
-        # 1) Reset master list
-        st.session_state.status_list = [False] * task_count
-        # 2) Remove every checkbox widget key so they re‑render unchecked
-        for k in list(st.session_state.keys()):
-            if k.startswith("cb_"):
-                del st.session_state[k]
-        # 3) Persist cleared state
-        save_state(st.session_state.status_list)
-        # No manual rerun needed ‑ callback completion triggers a rerun automatically
+    # ── Reset Callback (sets a flag only) ──────────────────
+    def queue_reset():
+        st.session_state["_reset_flag"] = True
 
+    # ── Sidebar / Progress / Buttons ───────────────────────
     with col_side:
         st.subheader("📊 Progress Tracker")
         completed = sum(st.session_state.status_list)
@@ -176,18 +184,10 @@ def main():
             csv_bytes = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode()
             st.download_button("📄 Export as CSV", data=csv_bytes, file_name="daily_schedule.csv", mime="text/csv")
         with colB:
-            st.button("🔄 Reset Tasks", on_click=do_reset)
+            st.button("🔄 Reset Tasks", on_click=queue_reset)
 
         st.markdown(
             f"""
             <div style="background:#001d3d;border-radius:8px;padding:20px;margin-top:25px;
                         color:#f0f8ff;font-style:italic;font-size:18px;text-align:center;
-                        min-height:120px;display:flex;align-items:center;justify-content:center;">
-                🌟 <strong>Daily Motivation:</strong> {quote_for_today()}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-if __name__ == "__main__":
-    main()
+                        min-height
