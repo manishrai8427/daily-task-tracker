@@ -6,6 +6,7 @@ from datetime import datetime
 import pytz  # Using pytz for timezone support
 import os
 import pickle
+import time
 
 # File to store persistent data
 SAVE_FILE = "task_status.pkl"
@@ -78,8 +79,8 @@ def get_current_task_label(df):
     for i in range(len(df)):
         start, end = parse_time_range(df.loc[i, 'Time'])
         if start and end and start <= now <= end:
-            return f"{df.loc[i, 'Time']} — {df.loc[i, 'Task']}"
-    return "No active task currently"
+            return f"{df.loc[i, 'Time']} — {df.loc[i, 'Task']}", i
+    return "No active task currently", None
 
 def is_current_task(start, end):
     now = datetime.now(pytz.timezone("Asia/Kolkata")).time()
@@ -99,13 +100,10 @@ def main():
     st.set_page_config(page_title="Task Dashboard", layout="wide")
     st.title("🗓️ Full Daily Task Tracker")
 
-    now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
-
     if "data" not in st.session_state:
         st.session_state.data = load_saved_data()
 
     if st.session_state.get("reset_flag", False):
-        # Reset data and clear checkboxes BEFORE drawing UI
         st.session_state.reset_flag = False
         st.session_state.data = initial_data.copy(deep=True)
         for key in list(st.session_state.keys()):
@@ -116,13 +114,14 @@ def main():
 
     df = st.session_state.data
 
-    current_task = get_current_task_label(df)
+    now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
+    current_task_label, current_index = get_current_task_label(df)
 
     col_time, col_task = st.columns([0.5, 2.5])
     with col_time:
         st.info(f"🕒 {now}")
     with col_task:
-        st.success(f"✅ Current Task: {current_task}")
+        st.success(f"✅ Current Task: {current_task_label}")
 
     col1, col2 = st.columns([2, 1])
 
@@ -132,7 +131,7 @@ def main():
         for i in range(len(df)):
             time_range = df.loc[i, 'Time']
             start, end = parse_time_range(time_range)
-            is_current = is_current_task(start, end)
+            is_current = (i == current_index)
             label = f"{time_range} — {df.loc[i, 'Task']} ({df.loc[i, 'Notes']})"
 
             checkbox_key = f"checkbox_{i}"
