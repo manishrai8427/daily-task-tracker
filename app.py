@@ -6,7 +6,6 @@ from datetime import datetime
 import pytz  # Using pytz for timezone support
 import os
 import pickle
-import time
 
 # File to store persistent data
 SAVE_FILE = "task_status.pkl"
@@ -114,19 +113,11 @@ def main():
 
     df = st.session_state.data
 
-    # Dynamically update time every second
-    timer_placeholder = st.empty()
-    task_placeholder = st.empty()
-    for _ in range(60):  # Run for 60 seconds
-        now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
-        current_task_label, current_index = get_current_task_label(df)
-        with timer_placeholder.container():
-            col_time, col_task = st.columns([0.5, 2.5])
-            with col_time:
-                st.info(f"🕒 {now}")
-            with col_task:
-                st.success(f"✅ Current Task: {current_task_label}")
-        time.sleep(1)
+    # Display current task only
+    current_task_label, current_index = get_current_task_label(df)
+    col_task = st.container()
+    with col_task:
+        st.success(f"✅ Current Task: {current_task_label}")
 
     col1, col2 = st.columns([2, 1])
 
