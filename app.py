@@ -3,6 +3,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import pytz  # Using pytz for timezone support
 
 # Updated task data with timings, activity, and notes
 initial_data = pd.DataFrame({
@@ -68,14 +69,14 @@ def parse_time_range(time_range):
         return None, None
 
 def is_current_task(start, end):
-    now = datetime.now().time()
+    now = datetime.now(pytz.timezone("Asia/Kolkata")).time()
     return start <= now <= end if start and end else False
 
 def main():
     st.set_page_config(page_title="Task Dashboard", layout="wide")
     st.title("🗓️ Full Daily Task Tracker")
 
-    now = datetime.now().strftime("%H:%M:%S")
+    now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
     st.info(f"🕒 Current time: {now}")
 
     if "data" not in st.session_state:
