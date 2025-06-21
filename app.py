@@ -84,7 +84,7 @@ def main():
                 del st.session_state[key]
         st.session_state.data = initial_data.copy()
         st.session_state.reset_flag = False
-        st.experimental_rerun()
+        st.rerun()
 
     df = st.session_state.data
 
@@ -140,7 +140,7 @@ def main():
                         del st.session_state[key]
                 st.session_state.data = initial_data.copy()
                 st.session_state.reset_flag = True
-                st.experimental_rerun()
+                st.rerun()
 
 if __name__ == '__main__':
     main()
