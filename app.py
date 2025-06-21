@@ -85,11 +85,13 @@ def main():
     st.title("🗓️ Full Daily Task Tracker")
 
     now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
-    st.info(f"🕒 Current time: {now}")
-
-    # Display current task
     current_task = get_current_task_label(initial_data)
-    st.success(f"✅ Current Task: {current_task}")
+
+    col_time, col_task = st.columns([1, 2])
+    with col_time:
+        st.info(f"🕒 {now}")
+    with col_task:
+        st.success(f"✅ Current Task: {current_task}")
 
     if "data" not in st.session_state:
         st.session_state.data = initial_data.copy()
