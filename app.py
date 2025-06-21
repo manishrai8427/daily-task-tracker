@@ -61,9 +61,17 @@ TIME_FORMAT = "%H:%M"
 
 def parse_time_range(time_range):
     try:
-        start_str, end_str = time_range.replace("–", "-").split("-")
+        if "–" in time_range:
+            start_str, end_str = time_range.split("–")
+        elif "-" in time_range:
+            start_str, end_str = time_range.split("-")
+        else:
+            return None, None
+
         start = datetime.strptime(start_str.strip(), TIME_FORMAT).time()
         end = datetime.strptime(end_str.strip(), TIME_FORMAT).time()
+        if start > end:
+            return start, datetime.strptime("23:59", TIME_FORMAT).time()
         return start, end
     except:
         return None, None
@@ -78,11 +86,8 @@ def main():
     st.set_page_config(page_title="Task Dashboard", layout="wide")
     st.title("🗓️ Full Daily Task Tracker")
 
-    if "data" not in st.session_state:
+    if "data" not in st.session_state or st.session_state.get("reset_triggered", False):
         st.session_state.data = initial_data.copy()
-
-    if "reset_triggered" in st.session_state and st.session_state.reset_triggered:
-        st.session_state.data['Status'] = [False] * len(st.session_state.data)
         st.session_state.reset_triggered = False
 
     df = st.session_state.data
@@ -98,6 +103,12 @@ def main():
             is_current = is_current_task(start, end)
             label = f"{time_range} — {df.loc[i, 'Task']} ({df.loc[i, 'Notes']})"
 
+            checkbox_key = f"checkbox_{i}"
+            default_value = df.loc[i, 'Status'] if not st.session_state.get("reset_triggered", False) else False
+
+            checkbox = st.checkbox(label, value=default_value, key=checkbox_key)
+            updated_status.append(checkbox)
+
             if is_current:
                 st.markdown(
                     f"""
@@ -107,9 +118,6 @@ def main():
                     """,
                     unsafe_allow_html=True
                 )
-
-            checkbox = st.checkbox(label, value=df.loc[i, 'Status'], key=f"checkbox_{i}")
-            updated_status.append(checkbox)
 
         st.session_state.data['Status'] = updated_status
 
