@@ -156,8 +156,9 @@ def main():
         """Clear all check‑boxes and refresh UI on next cycle."""
         st.session_state.status_list = [False] * task_count
         # Remove every checkbox widget key so they re‑render unchecked
-        for i in range(ref_rows):
-            st.session_state.pop(f"cb_{i}", None)
+        for k in list(st.session_state.keys()):
+            if k.startswith("cb_"):
+                del st.session_state[k]
         save_state(st.session_state.status_list)
         st.session_state["_needs_rerun"] = True
 
