@@ -2,20 +2,20 @@
 Streamlit Web App – Daily Task Tracker
 -------------------------------------
 • Robust state handling (pads/truncates saved check‑box list)
-• Shows Reset, Export CSV, and Motivation every day (incl. Sunday)
+• Shows Reset, Export CSV, and Motivation every day (incl. Sunday)
 • Consistent layout across weekdays/Sunday
-• FIX: reset button now clears check‑boxes with no errors (uses on_click callback)
+• Reset button clears check‑boxes with on_click callback (no rerun needed)
 """
 
 import os
 import json
 import hashlib
 from datetime import datetime
+import calendar
 
 import streamlit as st
 import pandas as pd
 import pytz
-import calendar
 
 # ───────────────────────── Constants & Data ──────────────────────────
 TZ = pytz.timezone("Asia/Kolkata")
@@ -123,7 +123,7 @@ MOTIVATION_QUOTES = [
 # ─────────────────── Helper Functions ───────────────────
 
 def quote_for_today() -> str:
-    """Return a deterministic quote for the current date."""
+    """Return a deterministic quote based on the date."""
     today_iso = datetime.now(TZ).date().isoformat()
     idx = int(hashlib.sha256(today_iso.encode()).hexdigest(), 16) % len(MOTIVATION_QUOTES)
     return MOTIVATION_QUOTES[idx]
@@ -178,12 +178,13 @@ def main():
     st.set_page_config(page_title="Daily Task Tracker", layout="wide")
     st.title("🗓️ Full Daily Task Tracker")
 
+    # Choose schedule based on day name
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data.copy() if is_sunday else weekday_data.copy()
     task_count = len(schedule_df)
-    max_task_count = len(weekday_data)  # 10
+    max_task_count = len(weekday_data)  # reference height (10)
 
-    # Initialise / correct checkbox state length
+    # Ensure session_state list matches today’s task count
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
@@ -201,13 +202,14 @@ def main():
                 value=st.session_state.status_list[i],
                 key=f"checkbox_{i}",
             )
-        # Pad to keep Sunday height equal to weekdays
+        # Pad blank lines so Sunday aligns vertically with weekday height
         for _ in range(max_task_count - task_count):
-            st.write(" ")
+            st.write(" ")
 
     # —— Reset callback ——
     def reset_tasks():
         st.session_state.status_list = [False] * task_count
+        # remove individual checkbox widget states
         for key in list(st.session_state.keys()):
             if key.startswith("checkbox_"):
                 del st.session_state[key]
@@ -224,17 +226,18 @@ def main():
         colA, colB = st.columns(2)
         with colA:
             csv_bytes = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode()
-            st.download_button("📄 Export as CSV", data=csv_bytes, file_name="daily_schedule.csv", mime="text/csv")
+            st.download_button(
+                "📄 Export as CSV",
+                data=csv_bytes,
+                file_name="daily_schedule.csv",
+                mime="text/csv",
+            )
         with colB:
             st.button("🔄 Reset Tasks", on_click=reset_tasks)
 
-        # Motivation quote card
+        # Motivation quote card (HTML)
         st.markdown(
             f"""
             <div style="background:#001d3d;border-radius:8px;padding:20px;margin-top:25px;
                         color:#f0f8ff;font-style:italic;font-size:18px;text-align:center;
-                        min-height:130px;display:flex;align-items:center;justify-content:center;">
-                🌟 <strong>Daily Motivation:</strong> {quote_for_today()}
-            </div>
-            """,
-            unsafe
+                        min-height
