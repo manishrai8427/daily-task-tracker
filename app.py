@@ -3,8 +3,9 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import pytz  # Using pytz for timezone support
+import pytz
 import calendar
+import hashlib
 
 # Define weekday and Sunday task schedules
 weekday_data = pd.DataFrame({
@@ -84,26 +85,45 @@ sunday_data = pd.DataFrame({
     'Status': [False]*9
 })
 
+motivation_quotes_list = [
+    "Every day is a new beginning.",
+    "Your potential is endless.",
+    "Do something today your future self will thank you for.",
+    "Small steps every day.",
+    "Dream big. Start small. Act now.",
+    "You’ve got what it takes.",
+    "Wake up with determination. Go to bed with satisfaction.",
+    "You are stronger than you think.",
+    "The key to success is to focus on goals, not obstacles.",
+    "Push through. You are doing great.",
+    "Consistency is more important than perfection.",
+    "Every moment is a fresh beginning.",
+    "You are your only limit.",
+    "Stay focused and never give up.",
+    "Turn your dreams into plans."
+]
+
+def get_quote_for_date():
+    date_hash = int(hashlib.sha256(datetime.now().date().isoformat().encode()).hexdigest(), 16)
+    return motivation_quotes_list[date_hash % len(motivation_quotes_list)]
+
 TIME_FORMAT = "%H:%M"
 
 def parse_time_range(time_range):
     try:
-        time_range = time_range.replace("–", "-")  # normalize en-dash
+        time_range = time_range.replace("–", "-")
         if "onwards" in time_range:
             start_str = time_range.replace(" onwards", "").strip()
             start = datetime.strptime(start_str, TIME_FORMAT).time()
             return start, datetime.strptime("23:59", TIME_FORMAT).time()
-
         if "-" in time_range:
             start_str, end_str = time_range.split("-")
         else:
             return None, None
-
         start = datetime.strptime(start_str.strip(), TIME_FORMAT).time()
         end = datetime.strptime(end_str.strip(), TIME_FORMAT).time()
         return start, end
-    except Exception as e:
-        print("Time parsing error:", e)
+    except:
         return None, None
 
 def get_current_task_label(df):
@@ -122,16 +142,11 @@ def main():
     st.set_page_config(page_title="Task Dashboard", layout="wide")
     st.title("🗓️ Full Daily Task Tracker")
 
-    # Solo Leveling style quote block
+    today_name = calendar.day_name[datetime.now(pytz.timezone("Asia/Kolkata")).weekday()]
+    selected_data = sunday_data.copy() if today_name == "Sunday" else weekday_data.copy()
+
     st.markdown("""
-    <div style="
-        background-color: #0f1117;
-        border: 2px solid #7f5af0;
-        border-radius: 10px;
-        padding: 16px;
-        margin-top: 10px;
-        box-shadow: 0 0 15px #7f5af0;
-    ">
+    <div style="background-color: #0f1117; border: 2px solid #7f5af0; border-radius: 10px; padding: 16px; margin-top: 10px; box-shadow: 0 0 15px #7f5af0;">
         <p style="color: #f5f5f5; font-size: 16px; font-style: italic; text-align: center;">
             ⚔️ <strong>You have 24 hours in a day:</strong> 8 for sleep, 8 for work, and 8 to become stronger. <br>
             <span style="color: #94f9ff;">What are you doing with your 8?</span>
@@ -139,8 +154,11 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
-    today = calendar.day_name[datetime.now(pytz.timezone("Asia/Kolkata")).weekday()]
-    selected_data = sunday_data.copy() if today == "Sunday" else weekday_data.copy()
+    st.markdown(f"""
+    <div style="background-color: #001d3d; border-radius: 8px; padding: 12px 16px; margin-top: 15px; margin-bottom: 10px; color: #f0f8ff; font-style: italic; font-size: 16px;">
+        🌟 <strong>Daily Motivation:</strong> {get_quote_for_date()}
+    </div>
+    """, unsafe_allow_html=True)
 
     if "data" not in st.session_state:
         st.session_state.data = selected_data.copy()
@@ -155,7 +173,6 @@ def main():
 
     df = st.session_state.data
 
-    # Display current task only
     current_task_label, current_index = get_current_task_label(df)
     col_task = st.container()
     with col_task:
@@ -171,22 +188,15 @@ def main():
             start, end = parse_time_range(time_range)
             is_current = (i == current_index)
             label = f"{time_range} — {df.loc[i, 'Task']} ({df.loc[i, 'Notes']})"
-
             checkbox_key = f"checkbox_{i}"
             default_value = st.session_state.get(checkbox_key, df.loc[i, 'Status'])
             checkbox = st.checkbox(label, value=default_value, key=checkbox_key)
             updated_status.append(checkbox)
-
             if is_current:
                 st.markdown(
-                    f"""
-                    <div style='background-color:#fff8dc; border-left:5px solid #f39c12; padding:12px 16px; margin-bottom:5px; border-radius:6px; font-weight:bold; color:#333;'>
-                        ⏰ {label}
-                    </div>
-                    """,
+                    f"<div style='background-color:#fff8dc; border-left:5px solid #f39c12; padding:12px 16px; margin-bottom:5px; border-radius:6px; font-weight:bold; color:#333;'>⏰ {label}</div>",
                     unsafe_allow_html=True
                 )
-
         df['Status'] = updated_status
 
     with col2:
@@ -198,7 +208,6 @@ def main():
         st.progress(percentage / 100)
 
         csv = df.to_csv(index=False).encode('utf-8')
-
         colA, colB = st.columns(2)
         with colA:
             st.download_button(
