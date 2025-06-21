@@ -114,30 +114,30 @@ def main():
     st.markdown("""
     <style>
     html, body, [class*="css"]  {
-        background: radial-gradient(circle at top left, #0f0f0f, #050505);
+        background: linear-gradient(to bottom right, #0f0f0f, #1a1a1a);
         color: #e0e0e0;
         font-family: 'Segoe UI', sans-serif;
     }
     .stButton > button, .stDownloadButton > button {
-        background-color: #0d1b2a;
-        color: #00e0ff;
-        border: 1px solid #00e0ff;
-        border-radius: 8px;
-        padding: 8px 16px;
+        background: linear-gradient(145deg, #1e1e1e, #292929);
+        color: #00f0ff;
+        border: 1px solid #00f0ff;
+        border-radius: 10px;
         font-weight: bold;
-        transition: all 0.3s;
+        padding: 10px 20px;
+        transition: all 0.2s ease-in-out;
     }
     .stButton > button:hover, .stDownloadButton > button:hover {
-        background-color: #00e0ff;
-        color: #0d1b2a;
-        transform: scale(1.03);
+        background-color: #00f0ff;
+        color: #000;
+        transform: scale(1.05);
     }
     .stCheckbox > label {
-        color: #00e0ff !important;
+        color: #00f0ff !important;
         font-weight: 500;
     }
     .stMetric label {
-        color: #00e0ff !important;
+        color: #00f0ff !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -181,12 +181,7 @@ def main():
         csv_data = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode("utf-8")
         colA, colB = st.columns(2)
         with colA:
-            st.download_button(
-                "📄 Export as CSV",
-                data=csv_data,
-                file_name="daily_schedule.csv",
-                mime="text/csv",
-            )
+            st.download_button("📄 Export as CSV", data=csv_data, file_name="daily_schedule.csv", mime="text/csv")
         with colB:
             st.button("🔄 Reset Tasks", on_click=reset_tasks)
 
