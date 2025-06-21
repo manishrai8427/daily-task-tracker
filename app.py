@@ -115,14 +115,12 @@ def main():
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
 
-/* -------- Gradient Dungeon Background -------- */
 .stApp {
     background: linear-gradient(135deg, #0a0a0f 0%, #11132b 40%, #001a33 100%) fixed;
     font-family: 'Orbitron', sans-serif;
     color: #e0e0e0;
 }
 
-/* Optional subtle overlay for depth */
 .stApp::before {
     content: "";
     position: fixed;
@@ -136,7 +134,6 @@ def main():
     background: transparent !important;
 }
 
-/* ---------- Buttons / Controls ---------- */
 .stButton > button, .stDownloadButton > button {
     background: linear-gradient(145deg, #1c1b2a, #2a2a3d);
     color: #00ffff;
@@ -145,43 +142,32 @@ def main():
     font-weight: bold;
     padding: 10px 20px;
     transition: all 0.25s ease;
-    outline: none; /* added */
+    outline: none;
 }
 .stButton > button:hover, .stDownloadButton > button:hover {
-    background: rgba(0, 255, 255, 0.18); /* translucent cyan */
+    background: rgba(0, 255, 255, 0.08);
     color: #00ffff !important;
     border-color: #00ffff;
     box-shadow: 0 0 14px #00ffff;
 }
-.stButton > button:hover *, .stDownloadButton > button:hover * {
+.stButton > button:hover span, .stDownloadButton > button:hover span {
     color: #00ffff !important;
 }
-    /* also apply text color to inner span so label stays readable */
-    .stButton > button:hover span, .stDownloadButton > button:hover span {
-        color: #0a0a0f !important;
-    }
 
-/* ---------- Checkbox label ---------- */
 .stCheckbox > label {
     color: #00ffff !important;
     font-weight: 500;
 }
 
-/* ---------- Metrics ---------- */
 .stMetric label, .stMetric div {
     color: #00ffff !important;
 }
 
-/* ---------- Headings ---------- */
 h1, h2, h3, h4, h5, h6 {
     color: #00ffff !important;
     text-shadow: 0 0 12px #00ffff;
 }
-    /* Force text color on all child elements during hover */
-    .stButton > button:hover *, .stDownloadButton > button:hover * {
-        color: #0a0a0f !important;
-    }
-</style>
+    </style>
     """, unsafe_allow_html=True)
 
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
