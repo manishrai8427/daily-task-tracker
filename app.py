@@ -2,9 +2,9 @@
 Streamlit Web App – Daily Task Tracker
 -------------------------------------
 • Robust state handling (pads/truncates saved check‑box list)
-• Reset, Export CSV, and Motivation show every day (incl. Sunday)
+• Reset, Export CSV, and Motivation every day
 • Consistent layout across weekdays/Sunday
-• Reset button clears **all** check‑boxes and forces a rerun (using st.rerun)
+• Reset button clears **all** check‑boxes and refreshes UI without warnings
 """
 
 import os
@@ -17,12 +17,12 @@ import streamlit as st
 import pandas as pd
 import pytz
 
-# ───────────────────────── Constants & Static Data ──────────────────────────
+# ──────────────────── Config ────────────────────
 TZ = pytz.timezone("Asia/Kolkata")
 STATE_FILE = "task_state.json"
 TIME_FORMAT = "%H:%M"
 
-# ---------------- Schedule Data -----------------
+# ───────────────── Schedules ───────────────────
 weekday_data = pd.DataFrame(
     {
         "Time": [
@@ -52,14 +52,14 @@ weekday_data = pd.DataFrame(
         "Notes": [
             "Light workout, stretch, or walk",
             "Ease into the day",
-            "3-hour deep work session",
+            "3‑hour deep work session",
             "Digest + light movement",
             "Focused task completion",
             "Prepare for tomorrow",
             "Relax and connect",
-            "Refresh body or enjoy games",
+            "Refresh body / enjoy games",
             "Skill‑building or game time",
-            "Aim for 8–9 hours of sleep",
+            "Aim for 8‑9 hours of sleep",
         ],
     }
 )
@@ -111,16 +111,16 @@ MOTIVATION_QUOTES = [
     "You’ve got what it takes.",
     "Wake up with determination. Go to bed with satisfaction.",
     "You are stronger than you think.",
-    "The key to success is to focus on goals, not obstacles.",
+    "Focus on goals, not obstacles.",
     "Push through. You are doing great.",
-    "Consistency is more important than perfection.",
-    "Every moment is a fresh beginning.",
+    "Consistency beats perfection.",
+    "Every moment is a fresh start.",
     "You are your only limit.",
     "Stay focused and never give up.",
     "Turn your dreams into plans.",
 ]
 
-# ─────────────────── Helper Functions ───────────────────
+# ─────────────────── Helpers ───────────────────
 
 def quote_for_today() -> str:
     today_iso = datetime.now(TZ).date().isoformat()
@@ -152,18 +152,18 @@ def current_task_label(df: pd.DataFrame) -> str:
     return "No active task currently"
 
 
-# ───────────── State Persistence ─────────────
+# ───────────── Persistence ─────────────
 
 def load_state(task_count: int):
-    state = [False] * task_count
-    if os.path.exists(STATE_FILE):
-        try:
-            with open(STATE_FILE, "r") as f:
-                saved = json.load(f).get("status", [])
-            state = (saved + [False] * task_count)[:task_count]
-        except Exception:
-            pass
-    return state
+    default = [False] * task_count
+    if not os.path.exists(STATE_FILE):
+        return default
+    try:
+        with open(STATE_FILE, "r") as f:
+            saved = json.load(f).get("status", [])
+        return (saved + default)[:task_count]
+    except Exception:
+        return default
 
 
 def save_state(status_list):
@@ -171,49 +171,41 @@ def save_state(status_list):
         json.dump({"status": status_list}, f)
 
 
-# ─────────────────────────── Main ───────────────────────────
+# ─────────────────────── Main ───────────────────────
 
 def main():
     st.set_page_config(page_title="Daily Task Tracker", layout="wide")
-    st.title("🗓️ Full Daily Task Tracker")
 
-    # Choose schedule based on day
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data.copy() if is_sunday else weekday_data.copy()
     task_count = len(schedule_df)
-    max_task_count = len(weekday_data)  # height padding ref
+    reference_rows = len(weekday_data)
 
-    # Initialise / resize state list
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
+    st.title("🗓️ Full Daily Task Tracker")
     st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
 
-    col_tasks, col_side = st.columns([2, 1])
+    left, right = st.columns([2, 1])
 
-    # —— Task Column ——
-    with col_tasks:
+    with left:
         st.subheader("📋 Timings & Notes")
         for i, row in schedule_df.iterrows():
             label = f"{row['Time']} — {row['Task']} ({row['Notes']})"
-            st.session_state.status_list[i] = st.checkbox(
-                label,
-                value=st.session_state.status_list[i],
-                key=f"checkbox_{i}",
-            )
-        for _ in range(max_task_count - task_count):
+            st.session_state.status_list[i] = st.checkbox(label, value=st.session_state.status_list[i], key=f"cb_{i}")
+        for _ in range(reference_rows - task_count):
             st.write(" ")
 
-    # —— Reset callback ——
-    def reset_tasks():
+    def do_reset():
         st.session_state.status_list = [False] * task_count
         for i in range(task_count):
-            st.session_state[f"checkbox_{i}"] = False
+            st.session_state[f"cb_{i}"] = False
         save_state(st.session_state.status_list)
-        st.rerun()  # streamlit 1.29+ standard rerun
+        # Flag a rerun – handled after layout to avoid warning
+        st.session_state._needs_rerun = True
 
-    # —— Sidebar ——
-    with col_side:
+    with right:
         st.subheader("📊 Progress Tracker")
         completed = sum(st.session_state.status_list)
         pct = (completed / task_count) * 100 if task_count else 0
@@ -223,14 +215,10 @@ def main():
         colA, colB = st.columns(2)
         with colA:
             csv_bytes = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode()
-            st.download_button(
-                "📄 Export as CSV",
-                data=csv_bytes,
-                file_name="daily_schedule.csv",
-                mime="text/csv",
-            )
+            st.download_button("📄 Export as CSV", data=csv_bytes, file_name="daily_schedule.csv", mime="text/csv")
         with colB:
-            st.button("🔄 Reset Tasks", on_click=reset_tasks)
+            if st.button("🔄 Reset Tasks"):
+                do_reset()
 
         st.markdown(
             f"""
@@ -244,6 +232,11 @@ def main():
         )
 
     save_state(st.session_state.status_list)
+
+    # Perform rerun if reset flagged (outside callback → no warning)
+    if st.session_state.get("_needs_rerun"):
+        del st.session_state["_needs_rerun"]
+        st.rerun()
 
 
 if __name__ == "__main__":
