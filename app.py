@@ -78,6 +78,13 @@ def main():
     if "data" not in st.session_state:
         st.session_state.data = initial_data.copy()
 
+    if "reset_flag" in st.session_state and st.session_state.reset_flag:
+        for key in list(st.session_state.keys()):
+            if key.startswith("checkbox_"):
+                del st.session_state[key]
+        st.session_state.data = initial_data.copy()
+        st.session_state.reset_flag = False
+
     df = st.session_state.data
 
     col1, col2 = st.columns([2, 1])
@@ -127,13 +134,7 @@ def main():
             )
         with colB:
             if st.button("🔄 Reset Tasks"):
-                # Reset session state for checkboxes
-                for i in range(len(df)):
-                    checkbox_key = f"checkbox_{i}"
-                    if checkbox_key in st.session_state:
-                        st.session_state.pop(checkbox_key)
-                # Reset the data too
-                st.session_state.data = initial_data.copy()
+                st.session_state.reset_flag = True
                 st.rerun()
 
 if __name__ == '__main__':
