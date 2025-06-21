@@ -156,7 +156,7 @@ def main():
         total = len(df)
         completed = sum(updated_status)
         percentage = (completed / total) * 100 if total > 0 else 0
-        st.metric(label="🎯 Progress", value=f"{completed}/{total} tasks completed", delta=f"{percentage:.2f}%")
+        st.metric(label="🌟 Progress", value=f"{completed}/{total} tasks completed", delta=f"{percentage:.2f}%")
         st.progress(percentage / 100)
 
         csv = df.to_csv(index=False).encode('utf-8')
@@ -164,7 +164,7 @@ def main():
         colA, colB = st.columns(2)
         with colA:
             st.download_button(
-                label="📥 Export as CSV",
+                label="📅 Export as CSV",
                 data=csv,
                 file_name="daily_schedule.csv",
                 mime='text/csv'
@@ -172,7 +172,7 @@ def main():
         with colB:
             if st.button("🔄 Reset Tasks"):
                 st.session_state.reset_flag = True
-                st.experimental_rerun()
+                st.stop()  # Prevent rest of the app from executing this run
 
 if __name__ == '__main__':
     main()
