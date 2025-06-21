@@ -197,13 +197,17 @@ def main():
         for _ in range(reference_rows - task_count):
             st.write(" ")
 
-    def do_reset():
+        def do_reset():
+        """Clear every checkbox safely, persist, then trigger a clean rerun."""
+        # 1) Reset the master list
         st.session_state.status_list = [False] * task_count
-        for i in range(task_count):
-            st.session_state[f"cb_{i}"] = False
+        # 2) Remove *all* checkbox widget keys so they re‑render unchecked
+        for i in range(reference_rows):
+            st.session_state.pop(f"cb_{i}", None)
+        # 3) Persist cleared state
         save_state(st.session_state.status_list)
-        # Flag a rerun – handled after layout to avoid warning
-        st.session_state._needs_rerun = True
+        # 4) Flag that UI needs a rerun (handled after layout)
+        st.session_state["_needs_rerun"] = True
 
     with right:
         st.subheader("📊 Progress Tracker")
