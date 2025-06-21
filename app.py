@@ -88,7 +88,11 @@ def is_current_task(start, end):
 def load_saved_data():
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE, 'rb') as f:
-            return pickle.load(f)
+            saved_df = pickle.load(f)
+        # check if task data structure changed (by comparing time/task)
+        if not saved_df[['Time', 'Task']].equals(initial_data[['Time', 'Task']]):
+            return initial_data.copy()
+        return saved_df
     return initial_data.copy()
 
 def save_data(df):
@@ -170,6 +174,14 @@ def main():
             if st.button("🔄 Reset Tasks"):
                 st.session_state.reset_flag = True
                 st.rerun()
+
+        # Optional manual reset to force use of initial_data
+        if st.button("⛘️ Force Reset to New Schedule"):
+            if os.path.exists(SAVE_FILE):
+                os.remove(SAVE_FILE)
+            st.session_state.data = initial_data.copy()
+            save_data(st.session_state.data)
+            st.rerun()
 
 if __name__ == '__main__':
     main()
