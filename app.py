@@ -147,10 +147,11 @@ def main():
     transition: all 0.25s ease-in-out;
 }
 .stButton > button:hover, .stDownloadButton > button:hover {
-    background-color: #00ffff;
-    color: #000;
-    transform: scale(1.05);
-}
+        background-color: #00ffff;
+        color: #0a0a0f; /* darker text for readability */
+        transform: scale(1.05);
+        box-shadow: 0 0 12px #00ffff;
+    }
 
 /* ---------- Checkbox label ---------- */
 .stCheckbox > label {
