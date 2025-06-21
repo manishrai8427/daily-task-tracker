@@ -8,12 +8,12 @@ import streamlit as st
 import pandas as pd
 import pytz
 
-# ─────── Config ───────
+# ─────── Config ──────
 TZ = pytz.timezone("Asia/Kolkata")
 STATE_FILE = "task_state.json"
 TIME_FORMAT = "%H:%M"
 
-# ─────── Schedule Data ───────
+# ─────── Schedule Data ──────
 weekday_data = pd.DataFrame({
     "Time": [
         "07:00–08:00", "08:00–10:00", "10:00–13:00", "13:00–15:00",
@@ -64,7 +64,7 @@ MOTIVATION_QUOTES = [
     "Turn your dreams into plans."
 ]
 
-# ─────── Utility Functions ───────
+# ─────── Utility Functions ──────
 def quote_for_today():
     today_iso = datetime.now(TZ).date().isoformat()
     idx = int(hashlib.sha256(today_iso.encode()).hexdigest(), 16) % len(MOTIVATION_QUOTES)
@@ -92,7 +92,7 @@ def current_task_label(df):
             return f"{row['Time']} — {row['Task']}"
     return "No active task currently"
 
-# ─────── Persistence ───────
+# ─────── Persistence ──────
 def load_state(task_count):
     if not os.path.exists(STATE_FILE):
         return [False] * task_count
@@ -107,75 +107,18 @@ def save_state(state):
     with open(STATE_FILE, "w") as f:
         json.dump({"status": state}, f)
 
-# ─────── Main App ───────
+# ─────── Main App ──────
 def main():
     st.set_page_config(page_title="Daily Task Tracker", layout="wide")
 
     st.markdown("""
     <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
-
-.stApp {
-    background: linear-gradient(135deg, #0a0a0f 0%, #11132b 40%, #001a33 100%) fixed;
-    font-family: 'Orbitron', sans-serif;
-    color: #e0e0e0;
+.stProgress > div > div > div > div {
+  background: linear-gradient(135deg, #00ffff 0%, #0000ff 100%);
+  box-shadow: 0 0 20px #00ffff;
+  transition: width 0.5s ease-in-out;
+  border-radius: 10px;
 }
-
-.stApp::before {
-    content: "";
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: radial-gradient(circle at center, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.55) 70%);
-    z-index: -1;
-}
-
-[data-testid="stAppViewContainer"] > .main {
-    background: transparent !important;
-}
-
-.stButton > button, .stDownloadButton > button {
-    background: linear-gradient(145deg, #1c1b2a, #2a2a3d);
-    color: #00ffff;
-    border: 1px solid #00ffff;
-    border-radius: 10px;
-    font-weight: bold;
-    padding: 10px 20px;
-    transition: all 0.25s ease;
-    outline: none;
-}
-.stButton > button:hover, .stDownloadButton > button:hover {
-    background: rgba(0, 255, 255, 0.08);
-    color: #00ffff !important;
-    border-color: #00ffff;
-    box-shadow: 0 0 14px #00ffff;
-}
-.stButton > button:hover span, .stDownloadButton > button:hover span {
-    color: #00ffff !important;
-}
-
-.stCheckbox > label {
-    color: #00ffff !important;
-    font-weight: 500;
-}
-
-.stMetric label, .stMetric div {
-    color: #00ffff !important;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    color: #00ffff !important;
-    text-shadow: 0 0 12px #00ffff;
-}
-        /* Preserve cyan style when button is active/focused */
-    .stButton > button:focus, .stDownloadButton > button:focus,
-    .stButton > button:active, .stDownloadButton > button:active {
-        background: rgba(0, 255, 255, 0.08);
-        color: #00ffff !important;
-        border-color: #00ffff !important;
-        box-shadow: 0 0 14px #00ffff inset;
-        outline: none !important;
-    }
 </style>
     """, unsafe_allow_html=True)
 
@@ -193,7 +136,7 @@ h1, h2, h3, h4, h5, h6 {
         save_state(st.session_state["status_list"])
         st.session_state.pop("_do_reset")
 
-    st.title("🗡️ Solo Leveling: Daily Task Tracker")
+    st.title("👤 Solo Leveling: Daily Task Tracker")
     st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
 
     col_tasks, col_side = st.columns([2, 1])
@@ -209,7 +152,7 @@ h1, h2, h3, h4, h5, h6 {
         st.subheader("🔮 Progress Crystal")
         completed = sum(st.session_state.status_list)
         percent = (completed / task_count) * 100
-        st.metric("🗡️ Quests Cleared", f"{completed}/{task_count}", delta=f"{percent:.1f}%")
+        st.metric("👤 Quests Cleared", f"{completed}/{task_count}", delta=f"{percent:.1f}%")
         st.progress(percent / 100)
 
         def reset_tasks():
