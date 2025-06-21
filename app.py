@@ -114,14 +114,19 @@ def main():
 
     df = st.session_state.data
 
-    now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
-    current_task_label, current_index = get_current_task_label(df)
-
-    col_time, col_task = st.columns([0.5, 2.5])
-    with col_time:
-        st.info(f"🕒 {now}")
-    with col_task:
-        st.success(f"✅ Current Task: {current_task_label}")
+    # Dynamically update time every second
+    timer_placeholder = st.empty()
+    task_placeholder = st.empty()
+    for _ in range(60):  # Run for 60 seconds
+        now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
+        current_task_label, current_index = get_current_task_label(df)
+        with timer_placeholder.container():
+            col_time, col_task = st.columns([0.5, 2.5])
+            with col_time:
+                st.info(f"🕒 {now}")
+            with col_task:
+                st.success(f"✅ Current Task: {current_task_label}")
+        time.sleep(1)
 
     col1, col2 = st.columns([2, 1])
 
