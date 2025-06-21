@@ -4,7 +4,7 @@ Streamlit Web App – Daily Task Tracker
 • Robust state handling (pads/truncates saved check‑box list)
 • Reset, Export CSV, and Motivation show every day (incl. Sunday)
 • Consistent layout across weekdays/Sunday
-• Reset button clears **all** check‑boxes and forces a clean rerun
+• Reset button clears **all** check‑boxes and forces a rerun (using st.rerun)
 """
 
 import os
@@ -52,7 +52,7 @@ weekday_data = pd.DataFrame(
         "Notes": [
             "Light workout, stretch, or walk",
             "Ease into the day",
-            "3‑hour deep work session",
+            "3-hour deep work session",
             "Digest + light movement",
             "Focused task completion",
             "Prepare for tomorrow",
@@ -123,14 +123,12 @@ MOTIVATION_QUOTES = [
 # ─────────────────── Helper Functions ───────────────────
 
 def quote_for_today() -> str:
-    """Return a deterministic quote for the current date."""
     today_iso = datetime.now(TZ).date().isoformat()
     idx = int(hashlib.sha256(today_iso.encode()).hexdigest(), 16) % len(MOTIVATION_QUOTES)
     return MOTIVATION_QUOTES[idx]
 
 
 def parse_time_range(rng: str):
-    """Convert a time‑range string to (start, end) time objects."""
     rng = rng.replace("–", "-")
     if "onwards" in rng:
         start = datetime.strptime(rng.replace(" onwards", "").strip(), TIME_FORMAT).time()
@@ -179,13 +177,13 @@ def main():
     st.set_page_config(page_title="Daily Task Tracker", layout="wide")
     st.title("🗓️ Full Daily Task Tracker")
 
-    # Select schedule for today
+    # Choose schedule based on day
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data.copy() if is_sunday else weekday_data.copy()
     task_count = len(schedule_df)
-    max_task_count = len(weekday_data)  # 10 rows for consistent height
+    max_task_count = len(weekday_data)  # height padding ref
 
-    # Ensure checkbox state list matches today’s task count
+    # Initialise / resize state list
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
@@ -203,18 +201,16 @@ def main():
                 value=st.session_state.status_list[i],
                 key=f"checkbox_{i}",
             )
-        # pad blank lines so Sunday column height ≈ weekday
         for _ in range(max_task_count - task_count):
             st.write(" ")
 
     # —— Reset callback ——
     def reset_tasks():
         st.session_state.status_list = [False] * task_count
-        # Explicitly untick every checkbox widget
         for i in range(task_count):
             st.session_state[f"checkbox_{i}"] = False
         save_state(st.session_state.status_list)
-        st.experimental_rerun()
+        st.rerun()  # streamlit 1.29+ standard rerun
 
     # —— Sidebar ——
     with col_side:
@@ -236,7 +232,6 @@ def main():
         with colB:
             st.button("🔄 Reset Tasks", on_click=reset_tasks)
 
-        # Motivation quote card
         st.markdown(
             f"""
             <div style="background:#001d3d;border-radius:8px;padding:20px;margin-top:25px;
@@ -248,7 +243,6 @@ def main():
             unsafe_allow_html=True,
         )
 
-    # persist state at end of run
     save_state(st.session_state.status_list)
 
 
