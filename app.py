@@ -144,14 +144,18 @@ def main():
     border-radius: 10px;
     font-weight: bold;
     padding: 10px 20px;
-    transition: all 0.25s ease-in-out;
+    transition: all 0.25s ease;
+    outline: none; /* added */
 }
 .stButton > button:hover, .stDownloadButton > button:hover {
-        background-color: #00ffff;
-        color: #0a0a0f !important; /* ensure button text */
-        transform: scale(1.05);
-        box-shadow: 0 0 12px #00ffff;
-    }
+    background: rgba(0, 255, 255, 0.18); /* translucent cyan */
+    color: #00ffff !important;
+    border-color: #00ffff;
+    box-shadow: 0 0 14px #00ffff;
+}
+.stButton > button:hover *, .stDownloadButton > button:hover * {
+    color: #00ffff !important;
+}
     /* also apply text color to inner span so label stays readable */
     .stButton > button:hover span, .stDownloadButton > button:hover span {
         color: #0a0a0f !important;
