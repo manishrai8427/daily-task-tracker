@@ -39,14 +39,14 @@ initial_data = pd.DataFrame({
     'Notes': [
         'Light workout, stretch, or walk',
         'Ease into the day',
-        '4-hour work sprint (deep productivity)',
+        '3-hour deep work session',
         'Digest + light movement',
-        'Admin, lighter tasks',
-        'Unwind',
-        'Study, reading, or skill-building',
-        'Optional screen-free hour',
-        'Sleep prep',
-        'Aim for 8–9 hours'
+        'Focused task completion',
+        'Prepare for tomorrow',
+        'Relax and connect',
+        'Refresh body or enjoy games',
+        'Skill-building or game time',
+        'Aim for 8–9 hours of sleep'
     ],
     'Status': [False]*10
 })
@@ -96,6 +96,10 @@ def save_data(df):
         pickle.dump(df, f)
 
 def main():
+    # TEMPORARY: force reset data once
+    if os.path.exists(SAVE_FILE):
+        os.remove(SAVE_FILE)
+
     st.set_page_config(page_title="Task Dashboard", layout="wide")
     st.title("🗓️ Full Daily Task Tracker")
 
@@ -161,7 +165,7 @@ def main():
         colA, colB = st.columns(2)
         with colA:
             st.download_button(
-                label="⬇️ Export as CSV",
+                label="📄 Export as CSV",
                 data=csv,
                 file_name="daily_schedule.csv",
                 mime='text/csv'
