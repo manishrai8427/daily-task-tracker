@@ -112,12 +112,13 @@ def main():
         st.session_state.data = load_saved_data()
 
     if st.session_state.get("reset_flag", False):
+        # Clear checkbox state cleanly
         for key in list(st.session_state.keys()):
             if key.startswith("checkbox_"):
                 del st.session_state[key]
-        st.session_state.data = initial_data.copy()
-        st.session_state.reset_flag = False
+        st.session_state.data = initial_data.copy(deep=True)
         save_data(st.session_state.data)
+        st.session_state.reset_flag = False
         st.experimental_rerun()
 
     df = st.session_state.data
@@ -164,7 +165,7 @@ def main():
         colA, colB = st.columns(2)
         with colA:
             st.download_button(
-                label="📅 Export as CSV",
+                label="🗕️ Export as CSV",
                 data=csv,
                 file_name="daily_schedule.csv",
                 mime='text/csv'
@@ -172,7 +173,7 @@ def main():
         with colB:
             if st.button("🔄 Reset Tasks"):
                 st.session_state.reset_flag = True
-                st.stop()  # Prevent rest of the app from executing this run
+                st.experimental_rerun()
 
 if __name__ == '__main__':
     main()
