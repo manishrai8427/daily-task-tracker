@@ -4,6 +4,11 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import pytz  # Using pytz for timezone support
+import os
+import pickle
+
+# File to store persistent data
+SAVE_FILE = "task_status.pkl"
 
 # Updated task data with timings, activity, and notes
 initial_data = pd.DataFrame({
@@ -80,6 +85,16 @@ def is_current_task(start, end):
     now = datetime.now(pytz.timezone("Asia/Kolkata")).time()
     return start <= now <= end if start and end else False
 
+def load_saved_data():
+    if os.path.exists(SAVE_FILE):
+        with open(SAVE_FILE, 'rb') as f:
+            return pickle.load(f)
+    return initial_data.copy()
+
+def save_data(df):
+    with open(SAVE_FILE, 'wb') as f:
+        pickle.dump(df, f)
+
 def main():
     st.set_page_config(page_title="Task Dashboard", layout="wide")
     st.title("🗓️ Full Daily Task Tracker")
@@ -94,7 +109,7 @@ def main():
         st.success(f"✅ Current Task: {current_task}")
 
     if "data" not in st.session_state:
-        st.session_state.data = initial_data.copy()
+        st.session_state.data = load_saved_data()
 
     if "reset_flag" in st.session_state and st.session_state.reset_flag:
         for key in list(st.session_state.keys()):
@@ -102,6 +117,7 @@ def main():
                 del st.session_state[key]
         st.session_state.data = initial_data.copy()
         st.session_state.reset_flag = False
+        save_data(st.session_state.data)
         st.rerun()
 
     df = st.session_state.data
@@ -118,7 +134,7 @@ def main():
             label = f"{time_range} — {df.loc[i, 'Task']} ({df.loc[i, 'Notes']})"
 
             checkbox_key = f"checkbox_{i}"
-            checkbox = st.checkbox(label, value=st.session_state.get(checkbox_key, False), key=checkbox_key)
+            checkbox = st.checkbox(label, value=df.loc[i, 'Status'], key=checkbox_key)
             updated_status.append(checkbox)
 
             if is_current:
@@ -131,7 +147,8 @@ def main():
                     unsafe_allow_html=True
                 )
 
-        st.session_state.data['Status'] = updated_status
+        df['Status'] = updated_status
+        save_data(df)
 
     with col2:
         st.subheader("📈 Progress Tracker")
@@ -158,6 +175,7 @@ def main():
                         del st.session_state[key]
                 st.session_state.data = initial_data.copy()
                 st.session_state.reset_flag = True
+                save_data(st.session_state.data)
                 st.rerun()
 
 if __name__ == '__main__':
