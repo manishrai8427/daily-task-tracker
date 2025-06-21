@@ -3,7 +3,7 @@ Streamlit Web App – Daily Task Tracker
 -------------------------------------
 • One single, de‑duplicated file
 • Works every day (Sunday included!)
-• Always shows Reset, Export CSV, and Motivation
+• Always shows Reset, Export CSV, and Motivation
 • Robust state handling: pads/truncates saved check‑box list to today’s length
 """
 
@@ -122,15 +122,13 @@ MOTIVATION_QUOTES = [
 # ───────────────────────────── Helper Functions ─────────────────────────────
 
 def quote_for_today() -> str:
-    """Return a deterministic quote for the current date."""
     today_iso = datetime.now(TZ).date().isoformat()
     idx = int(hashlib.sha256(today_iso.encode()).hexdigest(), 16) % len(MOTIVATION_QUOTES)
     return MOTIVATION_QUOTES[idx]
 
 
 def parse_time_range(rng: str):
-    """Return (start_time, end_time) from a string like '07:00-09:00' or '22:00 onwards'."""
-    rng = rng.replace("–", "-")  # normalize en‑dash
+    rng = rng.replace("–", "-")
     if "onwards" in rng:
         start = datetime.strptime(rng.replace(" onwards", "").strip(), TIME_FORMAT).time()
         end = datetime.strptime("23:59", TIME_FORMAT).time()
@@ -156,15 +154,14 @@ def current_task_label(df: pd.DataFrame) -> str:
 # ──────────────────────── State Load / Save Utilities ────────────────────────
 
 def load_state(task_count: int):
-    """Return a list of booleans sized to task_count, padded/truncated as needed."""
     state = [False] * task_count
     if os.path.exists(STATE_FILE):
         try:
             with open(STATE_FILE, "r") as f:
                 saved = json.load(f).get("status", [])
-            state = (saved + [False] * task_count)[:task_count]  # fit size
+            state = (saved + [False] * task_count)[:task_count]
         except Exception:
-            pass  # ignore corrupt file
+            pass
     return state
 
 
@@ -183,21 +180,16 @@ def main():
     schedule_df = sunday_data.copy() if is_sunday else weekday_data.copy()
     task_count = len(schedule_df)
 
-    # Ensure session state list has correct length
-    if (
-        "status_list" not in st.session_state
-        or len(st.session_state.status_list) != task_count
-    ):
+    if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
-    # Current task banner
     st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
 
     col_tasks, col_side = st.columns([2, 1])
 
-    # ── Task Check‑boxes ────────────────────────────────────────────────────
     with col_tasks:
         st.subheader("📋 Timings & Notes")
+        st.markdown('<div style="min-height: 950px;">', unsafe_allow_html=True)
         for i, row in schedule_df.iterrows():
             label = f"{row['Time']} — {row['Task']} ({row['Notes']})"
             st.session_state.status_list[i] = st.checkbox(
@@ -205,8 +197,8 @@ def main():
                 value=st.session_state.status_list[i],
                 key=f"checkbox_{i}",
             )
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    # ── Sidebar: Progress, Export, Reset, Quote ────────────────────────────
     with col_side:
         st.subheader("📊 Progress Tracker")
         completed = sum(st.session_state.status_list)
@@ -214,11 +206,9 @@ def main():
         st.metric("🌟 Progress", f"{completed}/{task_count} tasks", delta=f"{pct:.2f}%")
         st.progress(pct / 100)
 
-        # CSV export
         csv_bytes = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode()
         st.download_button("📄 Export as CSV", data=csv_bytes, file_name="daily_schedule.csv", mime="text/csv")
 
-        # Reset button
         if st.button("🔄 Reset Tasks"):
             st.session_state.status_list = [False] * task_count
             for k in list(st.session_state.keys()):
@@ -227,7 +217,6 @@ def main():
             save_state(st.session_state.status_list)
             st.experimental_rerun()
 
-        # Daily motivation card
         st.markdown(
             f"""
             <div style="background:#001d3d;border-radius:8px;padding:20px;margin-top:25px;
@@ -239,7 +228,6 @@ def main():
             unsafe_allow_html=True,
         )
 
-    # Persist checkbox state once per run
     save_state(st.session_state.status_list)
 
 
