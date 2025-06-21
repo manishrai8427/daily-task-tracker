@@ -222,7 +222,7 @@ def main():
 
         st.markdown(
             f"""
-            <div style="background:#001d3d;border-radius:8px;padding:40px;margin-top:25px;
+            <div style="background:#001d3d;border-radius:8px;padding:60px;margin-top:25px;
                         color:#f0f8ff;font-style:italic;font-size:18px;text-align:center;
                         min-height:130px;display:flex;align-items:center;justify-content:center;">
                 🌟 <strong>Daily Motivation:</strong> {quote_for_today()}
