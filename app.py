@@ -2,9 +2,9 @@
 Streamlit Web App – Daily Task Tracker
 -------------------------------------
 • Robust state handling (pads/truncates saved check‑box list)
-• Reset, Export CSV, and Motivation show every day
+• Reset, Export CSV, and Motivation show every day (incl. Sunday)
 • Consistent layout across weekdays/Sunday
-• Reset button now fully clears **all** check‑boxes (including the last‑clicked one) by forcing a rerun
+• Reset button clears **all** check‑boxes and forces a clean rerun
 """
 
 import os
@@ -81,7 +81,7 @@ sunday_data = pd.DataFrame(
             "Lazy Morning",
             "Family Breakfast",
             "Outdoor Fun / TV Time",
-            "Big Lunch + Rest",
+            "Big Lunch + Rest",
             "Hobbies / Free Time",
             "Light Planning",
             "Movie or Chill Time",
@@ -130,6 +130,7 @@ def quote_for_today() -> str:
 
 
 def parse_time_range(rng: str):
+    """Convert a time‑range string to (start, end) time objects."""
     rng = rng.replace("–", "-")
     if "onwards" in rng:
         start = datetime.strptime(rng.replace(" onwards", "").strip(), TIME_FORMAT).time()
@@ -182,7 +183,7 @@ def main():
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data.copy() if is_sunday else weekday_data.copy()
     task_count = len(schedule_df)
-    max_task_count = len(weekday_data)  # 10 rows for height padding
+    max_task_count = len(weekday_data)  # 10 rows for consistent height
 
     # Ensure checkbox state list matches today’s task count
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
@@ -202,20 +203,17 @@ def main():
                 value=st.session_state.status_list[i],
                 key=f"checkbox_{i}",
             )
-        # pad blank lines so shorter Sunday table keeps same height
+        # pad blank lines so Sunday column height ≈ weekday
         for _ in range(max_task_count - task_count):
             st.write(" ")
 
     # —— Reset callback ——
     def reset_tasks():
-        # 1. Clear master list
         st.session_state.status_list = [False] * task_count
-        # 2. Explicitly untick every checkbox widget
+        # Explicitly untick every checkbox widget
         for i in range(task_count):
-            cb_key = f"checkbox_{i}"
-            st.session_state[cb_key] = False
+            st.session_state[f"checkbox_{i}"] = False
         save_state(st.session_state.status_list)
-        # 3. Force a clean rerun so UI refreshes immediately
         st.experimental_rerun()
 
     # —— Sidebar ——
@@ -238,20 +236,21 @@ def main():
         with colB:
             st.button("🔄 Reset Tasks", on_click=reset_tasks)
 
-                # Motivation quote card
+        # Motivation quote card
         st.markdown(
             f"""
-            <div style="
-                background-color:#f0f2f6;
-                border-left: 6px solid #007acc;
-                padding: 1rem;
-                border-radius: 0.5rem;
-                margin-top: 1rem;
-                font-style: italic;
-                color: #333;
-            ">
-                💡 <b>Motivation:</b> {quote_for_today()}
+            <div style="background:#001d3d;border-radius:8px;padding:20px;margin-top:25px;
+                        color:#f0f8ff;font-style:italic;font-size:18px;text-align:center;
+                        min-height:120px;display:flex;align-items:center;justify-content:center;">
+                🌟 <strong>Daily Motivation:</strong> {quote_for_today()}
             </div>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
+
+    # persist state at end of run
+    save_state(st.session_state.status_list)
+
+
+if __name__ == "__main__":
+    main()
