@@ -14,26 +14,26 @@ SAVE_FILE = "task_status.pkl"
 initial_data = pd.DataFrame({
     'Time': [
         '07:00–08:00',
-        '08:00–09:00',
-        '09:00–13:00',
-        '13:00–14:00',
-        '14:00–18:00',
-        '18:00–19:00',
-        '19:00–20:00',
+        '08:00–10:00',
+        '10:00–13:00',
+        '13:00–15:00',
+        '15:00–17:30',
+        '17:30–18:00',
+        '18:00–20:00',
         '20:00–21:00',
         '21:00–22:00',
         '22:00 onwards'
     ],
     'Task': [
-        'Morning Routine & Exercise',
+        'Morning Routine',
         'Breakfast & Personal Prep',
         'Work Block 1',
         'Lunch & Short Walk/Break',
         'Work Block 2',
-        'Dinner',
-        'Learning Block',
-        'Free time or wind-down activity',
-        'Get ready for bed + light reading',
+        'Next Day Planning',
+        'Time With Family',
+        'Workout/Gaming',
+        'Learning/Gaming',
         'Sleep'
     ],
     'Notes': [
