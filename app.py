@@ -116,7 +116,7 @@ def main():
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
 
     .stApp {
-        background: url('https://images.unsplash.com/photo-1608477405541-7a5f755e2da6?auto=format&fit=crop&w=1400&q=80') no-repeat center center fixed;
+        background: url('https://wallpapercave.com/wp/wp12492340.jpg') no-repeat center center fixed;
         background-size: cover;
         font-family: 'Orbitron', sans-serif;
         color: #e0e0e0;
