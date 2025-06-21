@@ -68,6 +68,14 @@ def parse_time_range(time_range):
         print("Time parsing error:", e)
         return None, None
 
+def get_current_task_label(df):
+    now = datetime.now(pytz.timezone("Asia/Kolkata")).time()
+    for i in range(len(df)):
+        start, end = parse_time_range(df.loc[i, 'Time'])
+        if start and end and start <= now <= end:
+            return f"{df.loc[i, 'Time']} — {df.loc[i, 'Task']}"
+    return "No active task currently"
+
 def is_current_task(start, end):
     now = datetime.now(pytz.timezone("Asia/Kolkata")).time()
     return start <= now <= end if start and end else False
@@ -78,6 +86,10 @@ def main():
 
     now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
     st.info(f"🕒 Current time: {now}")
+
+    # Display current task
+    current_task = get_current_task_label(initial_data)
+    st.success(f"✅ Current Task: {current_task}")
 
     if "data" not in st.session_state:
         st.session_state.data = initial_data.copy()
