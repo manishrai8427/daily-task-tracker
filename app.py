@@ -113,50 +113,66 @@ def main():
 
     st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
-    html, body, [class*="css"] {
-        background-image: url('https://images.unsplash.com/photo-1608477405541-7a5f755e2da6?auto=format&fit=crop&w=1400&q=80');
-        background-size: cover;
-        background-attachment: fixed;
-        color: #e0e0e0;
-        font-family: 'Orbitron', sans-serif;
-    }
-    .main::before {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(to bottom right, rgba(15,15,15,0.85), rgba(28,27,42,0.95));
-        z-index: -1;
-    }
-    .stButton > button, .stDownloadButton > button {
-        background: linear-gradient(145deg, #1c1b2a, #2a2a3d);
-        color: #00ffff;
-        border: 1px solid #00ffff;
-        border-radius: 10px;
-        font-weight: bold;
-        padding: 10px 20px;
-        transition: all 0.2s ease-in-out;
-    }
-    .stButton > button:hover, .stDownloadButton > button:hover {
-        background-color: #00ffff;
-        color: #000;
-        transform: scale(1.05);
-    }
-    .stCheckbox > label {
-        color: #00ffff !important;
-        font-weight: 500;
-    }
-    .stMetric label, .stMetric div {
-        color: #00ffff !important;
-    }
-    h1, h2, h3, h4, h5, h6 {
-        color: #00ffff !important;
-        text-shadow: 0 0 10px #00ffff;
-    }
-    </style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
+html, body, [data-testid="stAppViewContainer"] {
+    background: url('https://images.unsplash.com/photo-1608477405541-7a5f755e2da6?auto=format&fit=crop&w=1400&q=80') no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Orbitron', sans-serif;
+    color: #e0e0e0;
+}
+
+[data-testid="stAppViewContainer"]::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(to bottom right, rgba(15,15,15,0.85), rgba(28,27,42,0.95));
+    z-index: 0;
+}
+
+.stApp {
+    background: transparent !important;
+}
+
+.stMarkdown, .stCheckbox, .stButton, .stDownloadButton, .stMetric {
+    z-index: 1;
+    position: relative;
+}
+
+.stButton > button, .stDownloadButton > button {
+    background: linear-gradient(145deg, #1c1b2a, #2a2a3d);
+    color: #00ffff;
+    border: 1px solid #00ffff;
+    border-radius: 10px;
+    font-weight: bold;
+    padding: 10px 20px;
+    transition: all 0.2s ease-in-out;
+}
+
+.stButton > button:hover, .stDownloadButton > button:hover {
+    background-color: #00ffff;
+    color: #000;
+    transform: scale(1.05);
+}
+
+.stCheckbox > label {
+    color: #00ffff !important;
+    font-weight: 500;
+}
+
+.stMetric label, .stMetric div {
+    color: #00ffff !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #00ffff !important;
+    text-shadow: 0 0 10px #00ffff;
+}
+</style>
+
     """, unsafe_allow_html=True)
 
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
