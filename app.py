@@ -145,21 +145,6 @@ def main():
     today_name = calendar.day_name[datetime.now(pytz.timezone("Asia/Kolkata")).weekday()]
     selected_data = sunday_data.copy() if today_name == "Sunday" else weekday_data.copy()
 
-    st.markdown("""
-    <div style="background-color: #0f1117; border: 2px solid #7f5af0; border-radius: 10px; padding: 16px; margin-top: 10px; box-shadow: 0 0 15px #7f5af0;">
-        <p style="color: #f5f5f5; font-size: 16px; font-style: italic; text-align: center;">
-            ⚔️ <strong>You have 24 hours in a day:</strong> 8 for sleep, 8 for work, and 8 to become stronger. <br>
-            <span style="color: #94f9ff;">What are you doing with your 8?</span>
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown(f"""
-    <div style="background-color: #001d3d; border-radius: 8px; padding: 12px 16px; margin-top: 15px; margin-bottom: 10px; color: #f0f8ff; font-style: italic; font-size: 16px;">
-        🌟 <strong>Daily Motivation:</strong> {get_quote_for_date()}
-    </div>
-    """, unsafe_allow_html=True)
-
     if "data" not in st.session_state:
         st.session_state.data = selected_data.copy()
 
@@ -220,6 +205,12 @@ def main():
             if st.button("🔄 Reset Tasks"):
                 st.session_state.reset_flag = True
                 st.rerun()
+
+    st.markdown(f"""
+    <div style="background-color: #001d3d; border-radius: 8px; padding: 12px 16px; margin-top: 25px; color: #f0f8ff; font-style: italic; font-size: 16px; text-align: center;">
+        🌟 <strong>Daily Motivation:</strong> {get_quote_for_date()}
+    </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == '__main__':
     main()
