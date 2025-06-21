@@ -113,13 +113,30 @@ def main():
 
     st.markdown("""
     <style>
-.stProgress > div > div > div > div {
-  background: linear-gradient(135deg, #00ffff 0%, #0000ff 100%);
-  box-shadow: 0 0 20px #00ffff;
-  transition: width 0.5s ease-in-out;
-  border-radius: 10px;
-}
-</style>
+    html, body, [class*="css"]  {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #dff6ff;
+    }
+
+    .stProgress > div > div > div > div {
+      background: linear-gradient(135deg, rgba(0,255,255,0.6), rgba(0,0,255,0.6));
+      box-shadow: 0 0 20px #00ffff;
+      border-radius: 10px;
+    }
+
+    .stButton>button {
+      background: rgba(0,255,255,0.1);
+      border: 1px solid #00e0ff;
+      color: #00e0ff;
+      transition: all 0.3s ease;
+    }
+
+    .stButton>button:hover {
+      background: rgba(0,255,255,0.3);
+      color: #000;
+      border: 1px solid #00ffff;
+    }
+    </style>
     """, unsafe_allow_html=True)
 
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
