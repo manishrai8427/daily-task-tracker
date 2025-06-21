@@ -4,7 +4,7 @@ Streamlit Web App – Daily Task Tracker
 • Robust state handling
 • Reset, Export CSV, Motivation visible every day (incl. Sunday)
 • Consistent layout (Sunday padded to weekday height)
-• Reset clears **all** check-boxes in one click without warnings
+• Reset clears **all** check‑boxes in one click without warnings
 """
 
 import os
@@ -39,8 +39,8 @@ weekday_data = pd.DataFrame(
             "Light workout, stretch, or walk", "Ease into the day",
             "3-hour deep work session", "Digest + light movement",
             "Focused task completion", "Prepare for tomorrow", "Relax and connect",
-            "Refresh body / enjoy games", "Skill-building or game time",
-            "Aim for 8-9 hours of sleep",
+            "Refresh body / enjoy games", "Skill‑building or game time",
+            "Aim for 8‑9 hours of sleep",
         ],
     }
 )
@@ -148,33 +148,31 @@ def main():
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
-    st.title("🗓️ Full Daily Task Tracker")
-    st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
+    st.title("🗓️ Full Daily Task Tracker")
+    st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
 
     col_tasks, col_side = st.columns([2, 1])
 
     with col_tasks:
-        st.subheader("📋 Timings & Notes")
+        st.subheader("📋 Timings & Notes")
         for i, row in schedule_df.iterrows():
             label = f"{row['Time']} — {row['Task']} ({row['Notes']})"
             st.session_state.status_list[i] = st.checkbox(label, value=st.session_state.status_list[i], key=f"cb_{i}")
         for _ in range(ref_rows - task_count):
             st.write(" ")
 
-    def queue_reset():
-        st.session_state["_reset_flag"] = True
+            def queue_reset():
+            """Clear all check-boxes immediately and request a fresh render."""
+            # 1) Clear master list and checkbox widgets now
+            st.session_state.status_list = [False] * task_count
+            for k in list(st.session_state.keys()):
+                if k.startswith("cb_"):
+                    del st.session_state[k]
+            save_state(st.session_state.status_list)
+            # 2) Flag for one clean rerun (handled at top of next cycle)
+            st.session_state["_reset_flag"] = True
 
-    with col_side:
-        st.subheader("📊 Progress Tracker")
-        completed = sum(st.session_state.status_list)
-        pct = (completed / task_count) * 100 if task_count else 0
-        st.metric("🌟 Progress", f"{completed}/{task_count} tasks", delta=f"{pct:.2f}%")
-        st.progress(pct / 100)
-
-        colA, colB = st.columns(2)
-        with colA:
-            csv_bytes = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode()
-            st.download_button("📄 Export as CSV", data=csv_bytes, file_name="daily_schedule.csv", mime="text/csv")
+        ...
         with colB:
             st.button("🔄 Reset Tasks", on_click=queue_reset)
 
