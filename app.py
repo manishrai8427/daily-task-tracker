@@ -2,9 +2,9 @@
 Streamlit Web App – Daily Task Tracker
 -------------------------------------
 • Robust state handling (pads/truncates saved check‑box list)
-• Shows Reset, Export CSV, and Motivation every day (incl. Sunday)
+• Reset, Export CSV, and Motivation show every day
 • Consistent layout across weekdays/Sunday
-• Reset button clears check‑boxes with on_click callback (no rerun needed)
+• Reset button now fully clears **all** check‑boxes (including the last‑clicked one) by forcing a rerun
 """
 
 import os
@@ -17,12 +17,12 @@ import streamlit as st
 import pandas as pd
 import pytz
 
-# ───────────────────────── Constants & Data ──────────────────────────
+# ───────────────────────── Constants & Static Data ──────────────────────────
 TZ = pytz.timezone("Asia/Kolkata")
 STATE_FILE = "task_state.json"
 TIME_FORMAT = "%H:%M"
 
-# ---------------- Schedules -----------------
+# ---------------- Schedule Data -----------------
 weekday_data = pd.DataFrame(
     {
         "Time": [
@@ -52,14 +52,14 @@ weekday_data = pd.DataFrame(
         "Notes": [
             "Light workout, stretch, or walk",
             "Ease into the day",
-            "3-hour deep work session",
+            "3‑hour deep work session",
             "Digest + light movement",
             "Focused task completion",
             "Prepare for tomorrow",
             "Relax and connect",
             "Refresh body or enjoy games",
-            "Skill-building or game time",
-            "Aim for 8–9 hours of sleep",
+            "Skill‑building or game time",
+            "Aim for 8–9 hours of sleep",
         ],
     }
 )
@@ -81,7 +81,7 @@ sunday_data = pd.DataFrame(
             "Lazy Morning",
             "Family Breakfast",
             "Outdoor Fun / TV Time",
-            "Big Lunch + Rest",
+            "Big Lunch + Rest",
             "Hobbies / Free Time",
             "Light Planning",
             "Movie or Chill Time",
@@ -123,6 +123,7 @@ MOTIVATION_QUOTES = [
 # ─────────────────── Helper Functions ───────────────────
 
 def quote_for_today() -> str:
+    """Return a deterministic quote for the current date."""
     today_iso = datetime.now(TZ).date().isoformat()
     idx = int(hashlib.sha256(today_iso.encode()).hexdigest(), 16) % len(MOTIVATION_QUOTES)
     return MOTIVATION_QUOTES[idx]
@@ -177,12 +178,13 @@ def main():
     st.set_page_config(page_title="Daily Task Tracker", layout="wide")
     st.title("🗓️ Full Daily Task Tracker")
 
+    # Select schedule for today
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data.copy() if is_sunday else weekday_data.copy()
     task_count = len(schedule_df)
-    max_task_count = len(weekday_data)  # 10 reference rows
+    max_task_count = len(weekday_data)  # 10 rows for height padding
 
-    # initialise or resize status_list
+    # Ensure checkbox state list matches today’s task count
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
@@ -200,16 +202,21 @@ def main():
                 value=st.session_state.status_list[i],
                 key=f"checkbox_{i}",
             )
+        # pad blank lines so shorter Sunday table keeps same height
         for _ in range(max_task_count - task_count):
             st.write(" ")
 
     # —— Reset callback ——
     def reset_tasks():
+        # 1. Clear master list
         st.session_state.status_list = [False] * task_count
-        for key in list(st.session_state.keys()):
-            if key.startswith("checkbox_"):
-                del st.session_state[key]
+        # 2. Explicitly untick every checkbox widget
+        for i in range(task_count):
+            cb_key = f"checkbox_{i}"
+            st.session_state[cb_key] = False
         save_state(st.session_state.status_list)
+        # 3. Force a clean rerun so UI refreshes immediately
+        st.experimental_rerun()
 
     # —— Sidebar ——
     with col_side:
@@ -234,18 +241,4 @@ def main():
         # Motivation quote card
         st.markdown(
             f"""
-            <div style="background:#001d3d;border-radius:8px;padding:20px;margin-top:25px;
-                        color:#f0f8ff;font-style:italic;font-size:18px;text-align:center;
-                        min-height:120px;display:flex;align-items:center;justify-content:center;">
-                🌟 <strong>Daily Motivation:</strong> {quote_for_today()}
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    # persist state at end of run
-    save_state(st.session_state.status_list)
-
-
-if __name__ == "__main__":
-    main()
+            <div style="
