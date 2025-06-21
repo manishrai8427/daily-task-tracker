@@ -1,10 +1,10 @@
 """
 Streamlit Web App – Daily Task Tracker
 -------------------------------------
-• Robust state handling (pads/truncates saved check-box list)
+• Robust state handling (pads/truncates saved check‑box list)
 • Reset, Export CSV, and Motivation visible every day (incl. Sunday)
 • Consistent layout (Sunday padded to weekday height)
-• Reset clears **all** check-boxes and refreshes UI cleanly (no warnings)
+• Reset clears **all** check‑boxes and refreshes UI cleanly (no warnings)
 """
 
 import os
@@ -37,10 +37,10 @@ weekday_data = pd.DataFrame(
         ],
         "Notes": [
             "Light workout, stretch, or walk", "Ease into the day",
-            "3-hour deep work session", "Digest + light movement",
+            "3‑hour deep work session", "Digest + light movement",
             "Focused task completion", "Prepare for tomorrow", "Relax and connect",
-            "Refresh body / enjoy games", "Skill-building or game time",
-            "Aim for 8-9 hours of sleep",
+            "Refresh body / enjoy games", "Skill‑building or game time",
+            "Aim for 8‑9 hours of sleep",
         ],
     }
 )
@@ -86,7 +86,6 @@ def quote_for_today() -> str:
 
 
 def parse_time_range(rng: str):
-    """Return (start,end) time objects from a range string like '07:00-10:00' or '22:00 onwards'."""
     rng = rng.replace("–", "-")
     if "onwards" in rng:
         start = datetime.strptime(rng.replace(" onwards", "").strip(), TIME_FORMAT).time()
@@ -132,44 +131,34 @@ def save_state(state):
 def main():
     st.set_page_config(page_title="Daily Task Tracker", layout="wide")
 
-    # Determine today's schedule
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data if is_sunday else weekday_data
     task_count = len(schedule_df)
-    ref_rows = len(weekday_data)  # for height padding
+    ref_rows = len(weekday_data)
 
-    # Initialise / correct session state length
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
-    # ── Header ──
     st.title("🗓️ Full Daily Task Tracker")
     st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
 
-    # ── Layout ──
     col_tasks, col_side = st.columns([2, 1])
 
-    # Task list with check-boxes
     with col_tasks:
         st.subheader("📋 Timings & Notes")
         for i, row in schedule_df.iterrows():
             label = f"{row['Time']} — {row['Task']} ({row['Notes']})"
             st.session_state.status_list[i] = st.checkbox(label, value=st.session_state.status_list[i], key=f"cb_{i}")
-        # pad blank lines so Sunday column height ≈ weekday
         for _ in range(ref_rows - task_count):
             st.write(" ")
 
-    # Reset logic — define once, outside callback bodies
     def do_reset():
-        """Clear every checkbox, persist blank state, then request a rerun."""
         st.session_state.status_list = [False] * task_count
-        # Remove all checkbox widget states
         for i in range(ref_rows):
             st.session_state.pop(f"cb_{i}", None)
         save_state(st.session_state.status_list)
-        st.session_state["_needs_rerun"] = True  # flag for rerun after layout
+        st.session_state["_needs_rerun"] = True
 
-    # Sidebar / Progress / Buttons
     with col_side:
         st.subheader("📊 Progress Tracker")
         completed = sum(st.session_state.status_list)
@@ -184,7 +173,6 @@ def main():
         with colB:
             st.button("🔄 Reset Tasks", on_click=do_reset)
 
-        # Motivation Card
         st.markdown(
             f"""
             <div style="background:#001d3d;border-radius:8px;padding:20px;margin-top:25px;
@@ -193,4 +181,8 @@ def main():
                 🌟 <strong>Daily Motivation:</strong> {quote_for_today()}
             </div>
             """,
-            unsafe
+            unsafe_allow_html=True
+        )
+
+if __name__ == "__main__":
+    main()
