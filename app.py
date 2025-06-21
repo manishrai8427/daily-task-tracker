@@ -122,7 +122,7 @@ MOTIVATION_QUOTES = [
 
 def quote_for_today() -> str:
     today_iso = datetime.now(TZ).date().isoformat()
-    idx = int(hashlib.sha256(today_iso.encode()).hexdigest(), 32) % len(MOTIVATION_QUOTES)
+    idx = int(hashlib.sha256(today_iso.encode()).hexdigest(), 16) % len(MOTIVATION_QUOTES)
     return MOTIVATION_QUOTES[idx]
 
 
