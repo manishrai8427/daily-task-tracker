@@ -111,6 +111,36 @@ def save_state(state):
 def main():
     st.set_page_config(page_title="Daily Task Tracker", layout="wide")
 
+    st.markdown("""
+    <style>
+    html, body, [class*="css"]  {
+        background-color: #0f0f0f !important;
+        color: #e0e0e0;
+        font-family: 'Segoe UI', sans-serif;
+    }
+    .stButton > button, .stDownloadButton > button {
+        background-color: #111111;
+        color: #00e0ff;
+        border: 1px solid #00e0ff;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    .stButton > button:hover, .stDownloadButton > button:hover {
+        background-color: #00e0ff;
+        color: #111111;
+    }
+    .stCheckbox > label {
+        color: #00e0ff !important;
+        font-weight: 500;
+    }
+    .stMetric label {
+        color: #00e0ff !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data if is_sunday else weekday_data
     task_count = len(schedule_df)
@@ -161,10 +191,11 @@ def main():
 
         st.markdown(
             f"""
-            <div style='background:#001d3d;border-radius:8px;padding:20px;margin-top:25px;
-                        color:#f0f8ff;font-style:italic;font-size:18px;text-align:center;
-                        min-height:120px;display:flex;align-items:center;justify-content:center;'>
-                🌟 <strong>Daily Motivation:</strong> {quote_for_today()}
+            <div style='background:#121f3d;border-radius:12px;padding:24px;margin-top:30px;
+                        color:#00e0ff;font-style:italic;font-size:20px;text-align:center;
+                        min-height:130px;display:flex;align-items:center;justify-content:center;
+                        box-shadow:0 0 20px #00e0ff55;'>
+                ⚔️ <strong>Daily Motivation:</strong> {quote_for_today()}
             </div>
             """,
             unsafe_allow_html=True,
