@@ -115,21 +115,15 @@ def main():
     schedule_df = sunday_data if is_sunday else weekday_data
     task_count = len(schedule_df)
 
-    # ─── Handle queued reset (flag set in button callback) ───
-    if st.session_state.get("_do_reset", False):
-        # Remove all checkbox widget keys
-        for k in list(st.session_state.keys()):
-            if k.startswith("cb_"):
-                del st.session_state[k]
-        # Clear saved state and memory state
-        st.session_state["status_list"] = [False] * task_count
-        save_state(st.session_state["status_list"])
-        st.session_state.pop("_do_reset")  # clear flag
-        st.experimental_rerun()
-    ref_rows = len(weekday_data)
-
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
+
+    if st.session_state.get("_do_reset", False):
+        for i in range(task_count):
+            st.session_state[f"cb_{i}"] = False
+        st.session_state["status_list"] = [False] * task_count
+        save_state(st.session_state["status_list"])
+        st.session_state.pop("_do_reset")
 
     st.title("🗓️ Full Daily Task Tracker")
     st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
@@ -142,8 +136,6 @@ def main():
             label = f"{row['Time']} — {row['Task']} ({row['Notes']})"
             checked = st.checkbox(label, value=st.session_state.status_list[i], key=f"cb_{i}")
             st.session_state.status_list[i] = checked
-        for _ in range(ref_rows - task_count):
-            st.write(" ")
 
     with col_side:
         st.subheader("📊 Progress Tracker")
@@ -152,9 +144,7 @@ def main():
         st.metric("🌟 Progress", f"{completed}/{task_count} tasks completed", delta=f"{percent:.1f}%")
         st.progress(percent / 100)
 
-        # Reset callback defined here (correct indentation)
         def reset_tasks():
-            """Queue a reset; main() will clear on next render."""
             st.session_state["_do_reset"] = True
 
         csv_data = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode("utf-8")
@@ -181,7 +171,6 @@ def main():
         )
 
     save_state(st.session_state.status_list)
-(st.session_state.status_list)
 
 if __name__ == "__main__":
     main()
