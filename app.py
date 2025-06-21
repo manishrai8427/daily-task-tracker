@@ -114,12 +114,12 @@ def main():
     st.markdown("""
     <style>
     html, body, [class*="css"]  {
-        background-color: #0f0f0f !important;
+        background: radial-gradient(circle at top left, #0f0f0f, #050505);
         color: #e0e0e0;
         font-family: 'Segoe UI', sans-serif;
     }
     .stButton > button, .stDownloadButton > button {
-        background-color: #111111;
+        background-color: #0d1b2a;
         color: #00e0ff;
         border: 1px solid #00e0ff;
         border-radius: 8px;
@@ -129,7 +129,8 @@ def main():
     }
     .stButton > button:hover, .stDownloadButton > button:hover {
         background-color: #00e0ff;
-        color: #111111;
+        color: #0d1b2a;
+        transform: scale(1.03);
     }
     .stCheckbox > label {
         color: #00e0ff !important;
@@ -191,10 +192,10 @@ def main():
 
         st.markdown(
             f"""
-            <div style='background:#121f3d;border-radius:12px;padding:24px;margin-top:30px;
+            <div style='background:#001d3d;border-radius:12px;padding:24px;margin-top:30px;
                         color:#00e0ff;font-style:italic;font-size:20px;text-align:center;
                         min-height:130px;display:flex;align-items:center;justify-content:center;
-                        box-shadow:0 0 20px #00e0ff55;'>
+                        box-shadow:0 0 20px #00e0ff;'>
                 ⚔️ <strong>Daily Motivation:</strong> {quote_for_today()}
             </div>
             """,
