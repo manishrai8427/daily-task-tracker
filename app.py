@@ -186,8 +186,11 @@ def main():
             st.download_button("📄 Export as CSV", data=csv, file_name="daily_schedule.csv", mime='text/csv')
         with colB:
             if st.button("🔄 Reset Tasks"):
-                st.session_state.status_list = [False] * task_count
-                save_state(st.session_state.status_list)
+                keys_to_delete = [key for key in st.session_state.keys() if key.startswith("checkbox_")]
+                for key in keys_to_delete:
+                    del st.session_state[key]
+                if "status_list" in st.session_state:
+                    del st.session_state["status_list"]
                 st.experimental_rerun()
 
         st.markdown(f"""
