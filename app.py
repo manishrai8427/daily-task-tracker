@@ -130,7 +130,7 @@ def main():
         with colB:
             if st.button("🔄 Reset Tasks"):
                 st.session_state.data['Status'] = [False] * len(df)
-                st.experimental_rerun()
+                st.rerun()
 
 if __name__ == '__main__':
     main()
