@@ -115,33 +115,39 @@ def main():
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
 
-html, body, [data-testid="stAppViewContainer"] {
-    background: url('https://images.unsplash.com/photo-1608477405541-7a5f755e2da6?auto=format&fit=crop&w=1400&q=80') no-repeat center center fixed;
-    background-size: cover;
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
     font-family: 'Orbitron', sans-serif;
     color: #e0e0e0;
 }
 
-[data-testid="stAppViewContainer"]::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: linear-gradient(to bottom right, rgba(15,15,15,0.85), rgba(28,27,42,0.95));
-    z-index: 0;
-}
-
-.stApp {
-    background: transparent !important;
-}
-
-.stMarkdown, .stCheckbox, .stButton, .stDownloadButton, .stMetric {
-    z-index: 1;
+/* --------  Background dungeon image  -------- */
+body {
+    background: url('https://images.unsplash.com/photo-1608477405541-7a5f755e2da6?auto=format&fit=crop&w=1400&q=80') no-repeat center center fixed;
+    background-size: cover;
     position: relative;
 }
 
+/* Dark gradient overlay for readability */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(15,15,15,0.88) 0%, rgba(28,27,42,0.93) 100%);
+    z-index: -1;
+}
+
+/* Ensure Streamlit root container is transparent so bg shows */
+.stApp, [data-testid="stAppViewContainer"] > .main {
+    background: transparent !important;
+}
+
+/* ---------- Buttons / Controls ---------- */
 .stButton > button, .stDownloadButton > button {
     background: linear-gradient(145deg, #1c1b2a, #2a2a3d);
     color: #00ffff;
@@ -149,30 +155,31 @@ html, body, [data-testid="stAppViewContainer"] {
     border-radius: 10px;
     font-weight: bold;
     padding: 10px 20px;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.25s ease-in-out;
 }
-
 .stButton > button:hover, .stDownloadButton > button:hover {
     background-color: #00ffff;
     color: #000;
-    transform: scale(1.05);
+    transform: scale(1.06);
 }
 
+/* ---------- Checkbox label ---------- */
 .stCheckbox > label {
     color: #00ffff !important;
     font-weight: 500;
 }
 
+/* ---------- Metrics ---------- */
 .stMetric label, .stMetric div {
     color: #00ffff !important;
 }
 
+/* ---------- Headings ---------- */
 h1, h2, h3, h4, h5, h6 {
     color: #00ffff !important;
-    text-shadow: 0 0 10px #00ffff;
+    text-shadow: 0 0 12px #00ffff;
 }
 </style>
-
     """, unsafe_allow_html=True)
 
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
