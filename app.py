@@ -114,6 +114,18 @@ def main():
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data if is_sunday else weekday_data
     task_count = len(schedule_df)
+
+    # ─── Handle queued reset (flag set in button callback) ───
+    if st.session_state.get("_do_reset", False):
+        # Remove all checkbox widget keys
+        for k in list(st.session_state.keys()):
+            if k.startswith("cb_"):
+                del st.session_state[k]
+        # Clear saved state and memory state
+        st.session_state["status_list"] = [False] * task_count
+        save_state(st.session_state["status_list"])
+        st.session_state.pop("_do_reset")  # clear flag
+        st.experimental_rerun()
     ref_rows = len(weekday_data)
 
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
@@ -145,16 +157,9 @@ def main():
         with colA:
             st.download_button("📄 Export as CSV", data=csv_data, file_name="daily_schedule.csv", mime="text/csv")
         with colB:
-            def reset_tasks():
-                """Clear all check‑boxes safely and rerun."""
-                # Remove widget states for every checkbox
-                for key in list(st.session_state.keys()):
-                    if key.startswith("cb_"):
-                        del st.session_state[key]
-                # Reset master list and persist
-                st.session_state.status_list = [False] * task_count
-                save_state(st.session_state.status_list)
-                st.experimental_rerun()
+                        def reset_tasks():
+                """Set reset flag; main() will handle clearing next run."""
+                st.session_state["_do_reset"] = True
 
             st.button("🔄 Reset Tasks", on_click=reset_tasks)
 
