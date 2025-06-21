@@ -111,14 +111,14 @@ def main():
     if "data" not in st.session_state:
         st.session_state.data = load_saved_data()
 
-    if "reset_flag" in st.session_state and st.session_state.reset_flag:
+    if st.session_state.get("reset_flag", False):
         for key in list(st.session_state.keys()):
             if key.startswith("checkbox_"):
                 del st.session_state[key]
         st.session_state.data = initial_data.copy()
         st.session_state.reset_flag = False
         save_data(st.session_state.data)
-        st.rerun()
+        st.experimental_rerun()
 
     df = st.session_state.data
 
@@ -134,7 +134,8 @@ def main():
             label = f"{time_range} — {df.loc[i, 'Task']} ({df.loc[i, 'Notes']})"
 
             checkbox_key = f"checkbox_{i}"
-            checkbox = st.checkbox(label, value=df.loc[i, 'Status'], key=checkbox_key)
+            default_value = st.session_state.get(checkbox_key, df.loc[i, 'Status'])
+            checkbox = st.checkbox(label, value=default_value, key=checkbox_key)
             updated_status.append(checkbox)
 
             if is_current:
@@ -170,13 +171,8 @@ def main():
             )
         with colB:
             if st.button("🔄 Reset Tasks"):
-                for key in list(st.session_state.keys()):
-                    if key.startswith("checkbox_"):
-                        del st.session_state[key]
-                st.session_state.data = initial_data.copy()
                 st.session_state.reset_flag = True
-                save_data(st.session_state.data)
-                st.rerun()
+                st.experimental_rerun()
 
 if __name__ == '__main__':
     main()
