@@ -49,14 +49,13 @@ TIME_FORMAT = "%H:%M"
 
 def parse_time_range(time_range):
     try:
+        time_range = time_range.replace("–", "-")  # normalize en-dash
         if "onwards" in time_range:
             start_str = time_range.replace(" onwards", "").strip()
             start = datetime.strptime(start_str, TIME_FORMAT).time()
             return start, datetime.strptime("23:59", TIME_FORMAT).time()
 
-        if "–" in time_range:
-            start_str, end_str = time_range.split("–")
-        elif "-" in time_range:
+        if "-" in time_range:
             start_str, end_str = time_range.split("-")
         else:
             return None, None
@@ -64,7 +63,8 @@ def parse_time_range(time_range):
         start = datetime.strptime(start_str.strip(), TIME_FORMAT).time()
         end = datetime.strptime(end_str.strip(), TIME_FORMAT).time()
         return start, end
-    except:
+    except Exception as e:
+        print("Time parsing error:", e)
         return None, None
 
 def is_current_task(start, end):
@@ -74,6 +74,9 @@ def is_current_task(start, end):
 def main():
     st.set_page_config(page_title="Task Dashboard", layout="wide")
     st.title("🗓️ Full Daily Task Tracker")
+
+    now = datetime.now().strftime("%H:%M:%S")
+    st.info(f"🕒 Current time: {now}")
 
     if "data" not in st.session_state:
         st.session_state.data = initial_data.copy()
