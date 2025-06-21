@@ -1,10 +1,9 @@
 """
 Streamlit Web App – Daily Task Tracker
 -------------------------------------
-• One single, de‑duplicated file
-• Works every day (Sunday included!)
-• Always shows Reset, Export CSV, and Motivation
-• Robust state handling: pads/truncates saved check‑box list to today’s length
+• De‑duplicated single file, robust state handling
+• Shows Reset, Export CSV, and Motivation every day (incl. Sunday)
+• New: simple padding instead of HTML wrapper ⇒ keeps weekday/Sunday columns aligned without hiding check‑boxes
 """
 
 import os
@@ -17,8 +16,8 @@ import pandas as pd
 import pytz
 import calendar
 
-# ───────────────────────── Constants & Static Data ──────────────────────────
-TZ = pytz.timezone("Asia/Kolkata")  # local timezone
+# ───────────────────────── Constants & Data ──────────────────────────
+TZ = pytz.timezone("Asia/Kolkata")
 STATE_FILE = "task_state.json"
 TIME_FORMAT = "%H:%M"
 
@@ -119,7 +118,7 @@ MOTIVATION_QUOTES = [
     "Turn your dreams into plans.",
 ]
 
-# ───────────────────────────── Helper Functions ─────────────────────────────
+# ─────────────────── Helper Functions ───────────────────
 
 def quote_for_today() -> str:
     today_iso = datetime.now(TZ).date().isoformat()
@@ -151,7 +150,7 @@ def current_task_label(df: pd.DataFrame) -> str:
     return "No active task currently"
 
 
-# ──────────────────────── State Load / Save Utilities ────────────────────────
+# ───────────── State Persistence ─────────────
 
 def load_state(task_count: int):
     state = [False] * task_count
@@ -170,7 +169,7 @@ def save_state(status_list):
         json.dump({"status": status_list}, f)
 
 
-# ──────────────────────────────────── Main ───────────────────────────────────
+# ─────────────────────────── Main ───────────────────────────
 
 def main():
     st.set_page_config(page_title="Daily Task Tracker", layout="wide")
@@ -179,6 +178,7 @@ def main():
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data.copy() if is_sunday else weekday_data.copy()
     task_count = len(schedule_df)
+    max_task_count = len(weekday_data)  # 10 ⇒ height reference
 
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
@@ -187,9 +187,9 @@ def main():
 
     col_tasks, col_side = st.columns([2, 1])
 
+    # —— Task Column ——
     with col_tasks:
         st.subheader("📋 Timings & Notes")
-        st.markdown('<div style="min-height: 950px;">', unsafe_allow_html=True)
         for i, row in schedule_df.iterrows():
             label = f"{row['Time']} — {row['Task']} ({row['Notes']})"
             st.session_state.status_list[i] = st.checkbox(
@@ -197,8 +197,11 @@ def main():
                 value=st.session_state.status_list[i],
                 key=f"checkbox_{i}",
             )
-        st.markdown('</div>', unsafe_allow_html=True)
+        # Pad with blank rows to keep height consistent
+        for _ in range(max_task_count - task_count):
+            st.write(" ")
 
+    # —— Sidebar ——
     with col_side:
         st.subheader("📊 Progress Tracker")
         completed = sum(st.session_state.status_list)
