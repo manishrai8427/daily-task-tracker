@@ -128,10 +128,8 @@ def main():
         st.subheader("📋 Timings & Notes")
         for i, row in schedule_df.iterrows():
             label = f"{row['Time']} — {row['Task']} ({row['Notes']})"
-            if f"cb_{i}" not in st.session_state:
-                st.session_state[f"cb_{i}"] = st.session_state.status_list[i]
-            st.session_state[f"cb_{i}"] = st.checkbox(label, value=st.session_state[f"cb_{i}"], key=f"cb_{i}")
-            st.session_state.status_list[i] = st.session_state[f"cb_{i}"]
+            checked = st.checkbox(label, value=st.session_state.status_list[i], key=f"cb_{i}")
+            st.session_state.status_list[i] = checked
         for _ in range(ref_rows - task_count):
             st.write(" ")
 
