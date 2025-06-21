@@ -152,15 +152,21 @@ def main():
         st.metric("🌟 Progress", f"{completed}/{task_count} tasks completed", delta=f"{percent:.1f}%")
         st.progress(percent / 100)
 
+        # Reset callback defined here (correct indentation)
+        def reset_tasks():
+            """Queue a reset; main() will clear on next render."""
+            st.session_state["_do_reset"] = True
+
         csv_data = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode("utf-8")
         colA, colB = st.columns(2)
         with colA:
-            st.download_button("📄 Export as CSV", data=csv_data, file_name="daily_schedule.csv", mime="text/csv")
+            st.download_button(
+                "📄 Export as CSV",
+                data=csv_data,
+                file_name="daily_schedule.csv",
+                mime="text/csv",
+            )
         with colB:
-                        def reset_tasks():
-                """Set reset flag; main() will handle clearing next run."""
-                st.session_state["_do_reset"] = True
-
             st.button("🔄 Reset Tasks", on_click=reset_tasks)
 
         st.markdown(
@@ -171,10 +177,11 @@ def main():
                 🌟 <strong>Daily Motivation:</strong> {quote_for_today()}
             </div>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
     save_state(st.session_state.status_list)
+(st.session_state.status_list)
 
 if __name__ == "__main__":
     main()
