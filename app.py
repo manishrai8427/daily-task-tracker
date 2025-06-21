@@ -161,7 +161,7 @@ def main():
         colA, colB = st.columns(2)
         with colA:
             st.download_button(
-                label="🔕 Export as CSV",
+                label="⬇️ Export as CSV",
                 data=csv,
                 file_name="daily_schedule.csv",
                 mime='text/csv'
