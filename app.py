@@ -95,11 +95,11 @@ def save_data(df):
     with open(SAVE_FILE, 'wb') as f:
         pickle.dump(df, f)
 
-def main():
-    # TEMPORARY: force reset data once
-    if os.path.exists(SAVE_FILE):
-        os.remove(SAVE_FILE)
+# ⚠️ Delete saved file once to apply new data
+if os.path.exists(SAVE_FILE):
+    os.remove(SAVE_FILE)
 
+def main():
     st.set_page_config(page_title="Task Dashboard", layout="wide")
     st.title("🗓️ Full Daily Task Tracker")
 
