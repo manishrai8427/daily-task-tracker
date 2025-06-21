@@ -173,6 +173,10 @@ h1, h2, h3, h4, h5, h6 {
     color: #00ffff !important;
     text-shadow: 0 0 12px #00ffff;
 }
+    /* Force text color on all child elements during hover */
+    .stButton > button:hover *, .stDownloadButton > button:hover * {
+        color: #0a0a0f !important;
+    }
 </style>
     """, unsafe_allow_html=True)
 
