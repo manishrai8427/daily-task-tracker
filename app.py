@@ -9,6 +9,7 @@ import pickle
 
 # File to store persistent data
 SAVE_FILE = "task_status.pkl"
+SCHEDULE_VERSION = "v2"  # increment this on every major schedule change
 
 # Updated task data with timings, activity, and notes
 initial_data = pd.DataFrame({
@@ -48,7 +49,8 @@ initial_data = pd.DataFrame({
         'Skill-building or game time',
         'Aim for 8–9 hours of sleep'
     ],
-    'Status': [False]*10
+    'Status': [False]*10,
+    'Version': [SCHEDULE_VERSION]*10
 })
 
 TIME_FORMAT = "%H:%M"
@@ -89,8 +91,8 @@ def load_saved_data():
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE, 'rb') as f:
             saved_df = pickle.load(f)
-        # If structure changed, remove old file and return new data
-        if not saved_df[['Time', 'Task']].equals(initial_data[['Time', 'Task']]):
+        # If version changed or structure changed
+        if 'Version' not in saved_df.columns or not (saved_df['Version'] == SCHEDULE_VERSION).all():
             os.remove(SAVE_FILE)
             return initial_data.copy()
         return saved_df
