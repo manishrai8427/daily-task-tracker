@@ -4,9 +4,10 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import pytz  # Using pytz for timezone support
+import calendar
 
-# Updated task data with timings, activity, and notes
-initial_data = pd.DataFrame({
+# Define weekday and Sunday task schedules
+weekday_data = pd.DataFrame({
     'Time': [
         '07:00–08:00',
         '08:00–10:00',
@@ -44,6 +45,43 @@ initial_data = pd.DataFrame({
         'Aim for 8–9 hours of sleep'
     ],
     'Status': [False]*10
+})
+
+sunday_data = pd.DataFrame({
+    'Time': [
+        '08:00–09:00',
+        '09:00–10:00',
+        '10:00–12:00',
+        '12:00–14:00',
+        '14:00–16:00',
+        '16:00–18:00',
+        '18:00–20:00',
+        '20:00–22:00',
+        '22:00 onwards'
+    ],
+    'Task': [
+        'Lazy Morning',
+        'Family Breakfast',
+        'Outdoor Fun/TV Time',
+        'Big Lunch + Rest',
+        'Hobbies/Free Time',
+        'Light Planning',
+        'Movie or Chill Time',
+        'Prep for Monday',
+        'Sleep'
+    ],
+    'Notes': [
+        'Wake up slowly',
+        'Enjoy with family',
+        'Watch or go outside',
+        'Relax post lunch',
+        'Any personal fun activity',
+        'Prepare lightly for week',
+        'Entertainment time',
+        'Review goals, clothes ready',
+        'Full rest'
+    ],
+    'Status': [False]*9
 })
 
 TIME_FORMAT = "%H:%M"
@@ -84,12 +122,32 @@ def main():
     st.set_page_config(page_title="Task Dashboard", layout="wide")
     st.title("🗓️ Full Daily Task Tracker")
 
+    # Solo Leveling style quote block
+    st.markdown("""
+    <div style="
+        background-color: #0f1117;
+        border: 2px solid #7f5af0;
+        border-radius: 10px;
+        padding: 16px;
+        margin-top: 10px;
+        box-shadow: 0 0 15px #7f5af0;
+    ">
+        <p style="color: #f5f5f5; font-size: 16px; font-style: italic; text-align: center;">
+            ⚔️ <strong>You have 24 hours in a day:</strong> 8 for sleep, 8 for work, and 8 to become stronger. <br>
+            <span style="color: #94f9ff;">What are you doing with your 8?</span>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    today = calendar.day_name[datetime.now(pytz.timezone("Asia/Kolkata")).weekday()]
+    selected_data = sunday_data.copy() if today == "Sunday" else weekday_data.copy()
+
     if "data" not in st.session_state:
-        st.session_state.data = initial_data.copy()
+        st.session_state.data = selected_data.copy()
 
     if st.session_state.get("reset_flag", False):
         st.session_state.reset_flag = False
-        st.session_state.data = initial_data.copy(deep=True)
+        st.session_state.data = selected_data.copy(deep=True)
         for key in list(st.session_state.keys()):
             if key.startswith("checkbox_"):
                 del st.session_state[key]
