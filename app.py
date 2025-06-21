@@ -84,6 +84,9 @@ def main():
                 del st.session_state[key]
         st.session_state.data = initial_data.copy()
         st.session_state.reset_flag = False
+        st.session_state.reset_flag_run_once = True
+    else:
+        st.session_state.reset_flag_run_once = False
 
     df = st.session_state.data
 
@@ -99,7 +102,10 @@ def main():
             label = f"{time_range} — {df.loc[i, 'Task']} ({df.loc[i, 'Notes']})"
 
             checkbox_key = f"checkbox_{i}"
-            checkbox = st.checkbox(label, value=df.loc[i, 'Status'], key=checkbox_key)
+            if st.session_state.reset_flag_run_once:
+                checkbox = st.checkbox(label, value=False, key=checkbox_key)
+            else:
+                checkbox = st.checkbox(label, value=df.loc[i, 'Status'], key=checkbox_key)
             updated_status.append(checkbox)
 
             if is_current:
