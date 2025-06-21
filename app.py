@@ -42,25 +42,18 @@ initial_data = pd.DataFrame({
         'Sleep prep',
         'Aim for 8–9 hours'
     ],
-    'Status': [
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False
-    ]
+    'Status': [False]*10
 })
 
-# Convert string time to datetime for comparison
 TIME_FORMAT = "%H:%M"
 
 def parse_time_range(time_range):
     try:
+        if "onwards" in time_range:
+            start_str = time_range.replace(" onwards", "").strip()
+            start = datetime.strptime(start_str, TIME_FORMAT).time()
+            return start, datetime.strptime("23:59", TIME_FORMAT).time()
+
         if "–" in time_range:
             start_str, end_str = time_range.split("–")
         elif "-" in time_range:
@@ -70,8 +63,6 @@ def parse_time_range(time_range):
 
         start = datetime.strptime(start_str.strip(), TIME_FORMAT).time()
         end = datetime.strptime(end_str.strip(), TIME_FORMAT).time()
-        if start > end:
-            return start, datetime.strptime("23:59", TIME_FORMAT).time()
         return start, end
     except:
         return None, None
@@ -80,15 +71,12 @@ def is_current_task(start, end):
     now = datetime.now().time()
     return start <= now <= end if start and end else False
 
-# Main App
-
 def main():
     st.set_page_config(page_title="Task Dashboard", layout="wide")
     st.title("🗓️ Full Daily Task Tracker")
 
-    if "data" not in st.session_state or st.session_state.get("reset_triggered", False):
+    if "data" not in st.session_state:
         st.session_state.data = initial_data.copy()
-        st.session_state.reset_triggered = False
 
     df = st.session_state.data
 
@@ -104,9 +92,7 @@ def main():
             label = f"{time_range} — {df.loc[i, 'Task']} ({df.loc[i, 'Notes']})"
 
             checkbox_key = f"checkbox_{i}"
-            default_value = df.loc[i, 'Status'] if not st.session_state.get("reset_triggered", False) else False
-
-            checkbox = st.checkbox(label, value=default_value, key=checkbox_key)
+            checkbox = st.checkbox(label, value=df.loc[i, 'Status'], key=checkbox_key)
             updated_status.append(checkbox)
 
             if is_current:
@@ -141,7 +127,13 @@ def main():
             )
         with colB:
             if st.button("🔄 Reset Tasks"):
-                st.session_state.reset_triggered = True
+                # Reset session state for checkboxes
+                for i in range(len(df)):
+                    checkbox_key = f"checkbox_{i}"
+                    if checkbox_key in st.session_state:
+                        st.session_state.pop(checkbox_key)
+                # Reset the data too
+                st.session_state.data = initial_data.copy()
                 st.rerun()
 
 if __name__ == '__main__':
