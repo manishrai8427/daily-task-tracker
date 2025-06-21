@@ -4,7 +4,7 @@ Streamlit Web App – Daily Task Tracker
 • Robust state handling
 • Reset, Export CSV, Motivation visible every day (incl. Sunday)
 • Consistent layout (Sunday padded to weekday height)
-• Reset clears **all** check‑boxes in a single click without warnings
+• Reset clears **all** check-boxes in one click without warnings
 """
 
 import os
@@ -37,10 +37,10 @@ weekday_data = pd.DataFrame(
         ],
         "Notes": [
             "Light workout, stretch, or walk", "Ease into the day",
-            "3‑hour deep work session", "Digest + light movement",
+            "3-hour deep work session", "Digest + light movement",
             "Focused task completion", "Prepare for tomorrow", "Relax and connect",
-            "Refresh body / enjoy games", "Skill‑building or game time",
-            "Aim for 8‑9 hours of sleep",
+            "Refresh body / enjoy games", "Skill-building or game time",
+            "Aim for 8-9 hours of sleep",
         ],
     }
 )
@@ -131,63 +131,65 @@ def save_state(state):
 def main():
     st.set_page_config(page_title="Daily Task Tracker", layout="wide")
 
-    # Handle deferred reset flag BEFORE anything else
+    # Handle deferred reset at very start
     if st.session_state.get("_reset_flag"):
-        # Clear all checkbox keys and status list
-        for key in list(st.session_state.keys()):
-            if key.startswith("cb_") or key == "status_list":
-                del st.session_state[key]
-        # Persist blank state (choose weekday row count for max safety)
+        for k in list(st.session_state.keys()):
+            if k.startswith("cb_") or k == "status_list":
+                del st.session_state[k]
         save_state([False] * len(weekday_data))
         st.session_state.pop("_reset_flag")
         st.experimental_rerun()
 
-    # Determine schedule for today
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data if is_sunday else weekday_data
     task_count = len(schedule_df)
     ref_rows = len(weekday_data)
 
-    # Initialise / correct session state length
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
-    # ── UI: Header ─────────────────────────────────────────
-    st.title("🗓️ Full Daily Task Tracker")
-    st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
+    st.title("🗓️ Full Daily Task Tracker")
+    st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
 
     col_tasks, col_side = st.columns([2, 1])
 
-    # ── Task Checkboxes ────────────────────────────────────
     with col_tasks:
-        st.subheader("📋 Timings & Notes")
+        st.subheader("📋 Timings & Notes")
         for i, row in schedule_df.iterrows():
             label = f"{row['Time']} — {row['Task']} ({row['Notes']})"
             st.session_state.status_list[i] = st.checkbox(label, value=st.session_state.status_list[i], key=f"cb_{i}")
         for _ in range(ref_rows - task_count):
-            st.write(" ")
+            st.write(" ")
 
-    # ── Reset Callback (sets a flag only) ──────────────────
     def queue_reset():
         st.session_state["_reset_flag"] = True
 
-    # ── Sidebar / Progress / Buttons ───────────────────────
     with col_side:
-        st.subheader("📊 Progress Tracker")
+        st.subheader("📊 Progress Tracker")
         completed = sum(st.session_state.status_list)
         pct = (completed / task_count) * 100 if task_count else 0
-        st.metric("🌟 Progress", f"{completed}/{task_count} tasks", delta=f"{pct:.2f}%")
+        st.metric("🌟 Progress", f"{completed}/{task_count} tasks", delta=f"{pct:.2f}%")
         st.progress(pct / 100)
 
         colA, colB = st.columns(2)
         with colA:
             csv_bytes = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode()
-            st.download_button("📄 Export as CSV", data=csv_bytes, file_name="daily_schedule.csv", mime="text/csv")
+            st.download_button("📄 Export as CSV", data=csv_bytes, file_name="daily_schedule.csv", mime="text/csv")
         with colB:
-            st.button("🔄 Reset Tasks", on_click=queue_reset)
+            st.button("🔄 Reset Tasks", on_click=queue_reset)
 
         st.markdown(
             f"""
-            <div style="background:#001d3d;border-radius:8px;padding:20px;margin-top:25px;
+            <div style='background:#001d3d;border-radius:8px;padding:20px;margin-top:25px;
                         color:#f0f8ff;font-style:italic;font-size:18px;text-align:center;
-                        min-height
+                        min-height:120px;display:flex;align-items:center;justify-content:center;'>
+                🌟 <strong>Daily Motivation:</strong> {quote_for_today()}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    save_state(st.session_state.status_list)
+
+if __name__ == "__main__":
+    main()
