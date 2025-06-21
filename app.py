@@ -113,49 +113,62 @@ def main():
 
     st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
 
-    .stApp {
-        background: url('https://wallpapercave.com/wp/wp12492340.jpg') no-repeat center center fixed;
-        background-size: cover;
-        font-family: 'Orbitron', sans-serif;
-        color: #e0e0e0;
-    }
+/* -------- Gradient Dungeon Background -------- */
+.stApp {
+    background: linear-gradient(135deg, #0a0a0f 0%, #11132b 40%, #001a33 100%) fixed;
+    font-family: 'Orbitron', sans-serif;
+    color: #e0e0e0;
+}
 
-    .stApp::before {
-        content: "";
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: linear-gradient(135deg, rgba(15,15,15,0.88), rgba(28,27,42,0.93));
-        z-index: -1;
-    }
+/* Optional subtle overlay for depth */
+.stApp::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: radial-gradient(circle at center, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.55) 70%);
+    z-index: -1;
+}
 
-    [data-testid="stAppViewContainer"] > .main {
-        background: transparent !important;
-    }
+[data-testid="stAppViewContainer"] > .main {
+    background: transparent !important;
+}
 
-    .stButton > button, .stDownloadButton > button {
-        background: linear-gradient(145deg, #1c1b2a, #2a2a3d);
-        color: #00ffff;
-        border: 1px solid #00ffff;
-        border-radius: 10px;
-        font-weight: bold;
-        padding: 10px 20px;
-        transition: all 0.25s ease-in-out;
-    }
-    .stButton > button:hover, .stDownloadButton > button:hover {
-        background-color: #00ffff;
-        color: #000;
-        transform: scale(1.06);
-    }
+/* ---------- Buttons / Controls ---------- */
+.stButton > button, .stDownloadButton > button {
+    background: linear-gradient(145deg, #1c1b2a, #2a2a3d);
+    color: #00ffff;
+    border: 1px solid #00ffff;
+    border-radius: 10px;
+    font-weight: bold;
+    padding: 10px 20px;
+    transition: all 0.25s ease-in-out;
+}
+.stButton > button:hover, .stDownloadButton > button:hover {
+    background-color: #00ffff;
+    color: #000;
+    transform: scale(1.05);
+}
 
-    .stCheckbox > label,
-    h1, h2, h3, h4, h5, h6 {
-        color: #00ffff !important;
-        text-shadow: 0 0 12px #00ffff;
-    }
-    </style>
+/* ---------- Checkbox label ---------- */
+.stCheckbox > label {
+    color: #00ffff !important;
+    font-weight: 500;
+}
+
+/* ---------- Metrics ---------- */
+.stMetric label, .stMetric div {
+    color: #00ffff !important;
+}
+
+/* ---------- Headings ---------- */
+h1, h2, h3, h4, h5, h6 {
+    color: #00ffff !important;
+    text-shadow: 0 0 12px #00ffff;
+}
+</style>
     """, unsafe_allow_html=True)
 
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
