@@ -1,12 +1,3 @@
-"""
-Streamlit Web App – Daily Task Tracker
--------------------------------------
-• Robust state handling
-• Reset, Export CSV, Motivation visible every day (incl. Sunday)
-• Consistent layout (Sunday padded to weekday height)
-• Reset clears **all** check‑boxes in one click without warnings
-"""
-
 import os
 import json
 import hashlib
@@ -17,54 +8,50 @@ import streamlit as st
 import pandas as pd
 import pytz
 
-# ──────────────────── Config ────────────────────
+# ───────── Config ─────────
 TZ = pytz.timezone("Asia/Kolkata")
 STATE_FILE = "task_state.json"
 TIME_FORMAT = "%H:%M"
 
-# ────────────────── Schedules ──────────────────
-weekday_data = pd.DataFrame(
-    {
-        "Time": [
-            "07:00–08:00", "08:00–10:00", "10:00–13:00", "13:00–15:00",
-            "15:00–17:30", "17:30–18:00", "18:00–20:00", "20:00–21:00",
-            "21:00–22:00", "22:00 onwards",
-        ],
-        "Task": [
-            "Morning Routine", "Breakfast & Personal Prep", "Work Block 1",
-            "Lunch & Short Walk/Break", "Work Block 2", "Next Day Planning",
-            "Time With Family", "Workout/Gaming", "Learning/Gaming", "Sleep",
-        ],
-        "Notes": [
-            "Light workout, stretch, or walk", "Ease into the day",
-            "3-hour deep work session", "Digest + light movement",
-            "Focused task completion", "Prepare for tomorrow", "Relax and connect",
-            "Refresh body / enjoy games", "Skill‑building or game time",
-            "Aim for 8‑9 hours of sleep",
-        ],
-    }
-)
+# ───────── Schedule Data ─────────
+weekday_data = pd.DataFrame({
+    "Time": [
+        "07:00–08:00", "08:00–10:00", "10:00–13:00", "13:00–15:00",
+        "15:00–17:30", "17:30–18:00", "18:00–20:00", "20:00–21:00",
+        "21:00–22:00", "22:00 onwards",
+    ],
+    "Task": [
+        "Morning Routine", "Breakfast & Personal Prep", "Work Block 1",
+        "Lunch & Short Walk/Break", "Work Block 2", "Next Day Planning",
+        "Time With Family", "Workout/Gaming", "Learning/Gaming", "Sleep",
+    ],
+    "Notes": [
+        "Light workout, stretch, or walk", "Ease into the day",
+        "3-hour deep work session", "Digest + light movement",
+        "Focused task completion", "Prepare for tomorrow", "Relax and connect",
+        "Refresh body / enjoy games", "Skill‑building or game time",
+        "Aim for 8‑9 hours of sleep",
+    ],
+})
 
-sunday_data = pd.DataFrame(
-    {
-        "Time": [
-            "08:00–09:00", "09:00–10:00", "10:00–12:00", "12:00–14:00",
-            "14:00–16:00", "16:00–18:00", "18:00–20:00", "20:00–22:00",
-            "22:00 onwards",
-        ],
-        "Task": [
-            "Lazy Morning", "Family Breakfast", "Outdoor Fun / TV Time",
-            "Big Lunch + Rest", "Hobbies / Free Time", "Light Planning",
-            "Movie or Chill Time", "Prep for Monday", "Sleep",
-        ],
-        "Notes": [
-            "Wake up slowly", "Enjoy with family", "Watch or go outside",
-            "Relax post lunch", "Any personal fun activity",
-            "Prepare lightly for week", "Entertainment time",
-            "Review goals, clothes ready", "Full rest",
-        ],
-    }
-)
+sunday_data = pd.DataFrame({
+    "Time": [
+        "08:00–09:00", "09:00–10:00", "10:00–12:00", "12:00–14:00",
+        "14:00–16:00", "16:00–18:00", "18:00–20:00", "20:00–22:00",
+        "22:00 onwards",
+    ],
+    "Task": [
+        "Lazy Morning", "Family Breakfast", "Outdoor Fun / TV Time",
+        "Big Lunch + Rest", "Hobbies / Free Time", "Light Planning",
+        "Movie or Chill Time", "Prep for Monday", "Sleep",
+    ],
+    "Notes": [
+        "Wake up slowly", "Enjoy with family", "Watch or go outside",
+        "Relax post lunch", "Any personal fun activity",
+        "Prepare lightly for week", "Entertainment time",
+        "Review goals, clothes ready", "Full rest",
+    ],
+})
 
 MOTIVATION_QUOTES = [
     "Every day is a new beginning.", "Your potential is endless.",
@@ -77,15 +64,13 @@ MOTIVATION_QUOTES = [
     "Turn your dreams into plans."
 ]
 
-# ─────────────────── Helper Functions ───────────────────
-
-def quote_for_today() -> str:
+# ───────── Utility Functions ─────────
+def quote_for_today():
     today_iso = datetime.now(TZ).date().isoformat()
     idx = int(hashlib.sha256(today_iso.encode()).hexdigest(), 16) % len(MOTIVATION_QUOTES)
     return MOTIVATION_QUOTES[idx]
 
-
-def parse_time_range(rng: str):
+def parse_time_range(rng):
     rng = rng.replace("–", "-")
     if "onwards" in rng:
         start = datetime.strptime(rng.replace(" onwards", "").strip(), TIME_FORMAT).time()
@@ -95,12 +80,11 @@ def parse_time_range(rng: str):
         start_str, end_str = rng.split("-")
         return (
             datetime.strptime(start_str.strip(), TIME_FORMAT).time(),
-            datetime.strptime(end_str.strip(), TIME_FORMAT).time(),
+            datetime.strptime(end_str.strip(), TIME_FORMAT).time()
         )
     return None, None
 
-
-def current_task_label(df: pd.DataFrame) -> str:
+def current_task_label(df):
     now_t = datetime.now(TZ).time()
     for _, row in df.iterrows():
         start, end = parse_time_range(row["Time"])
@@ -108,37 +92,24 @@ def current_task_label(df: pd.DataFrame) -> str:
             return f"{row['Time']} — {row['Task']}"
     return "No active task currently"
 
-# ───────────── Persistence ─────────────
-
-def load_state(task_count: int):
-    default = [False] * task_count
+# ───────── Persistence ─────────
+def load_state(task_count):
     if not os.path.exists(STATE_FILE):
-        return default
+        return [False] * task_count
     try:
         with open(STATE_FILE, "r") as f:
             saved = json.load(f).get("status", [])
-        return (saved + default)[:task_count]
+        return (saved + [False] * task_count)[:task_count]
     except Exception:
-        return default
-
+        return [False] * task_count
 
 def save_state(state):
     with open(STATE_FILE, "w") as f:
         json.dump({"status": state}, f)
 
-# ─────────────────────────── Main ───────────────────────────
-
+# ───────── Main App ─────────
 def main():
     st.set_page_config(page_title="Daily Task Tracker", layout="wide")
-
-    # Handle deferred reset at very start
-    if st.session_state.get("_reset_flag"):
-        for k in list(st.session_state.keys()):
-            if k.startswith("cb_") or k == "status_list":
-                del st.session_state[k]
-        save_state([False] * len(weekday_data))
-        st.session_state.pop("_reset_flag")
-        st.experimental_rerun()
 
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data if is_sunday else weekday_data
@@ -148,31 +119,38 @@ def main():
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
-    st.title("🗓️ Full Daily Task Tracker")
-    st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
+    def queue_reset():
+        st.session_state.status_list = [False] * task_count
+        for k in list(st.session_state.keys()):
+            if k.startswith("cb_"):
+                del st.session_state[k]
+        save_state(st.session_state.status_list)
+        st.rerun()
+
+    st.title("🗓️ Full Daily Task Tracker")
+    st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
 
     col_tasks, col_side = st.columns([2, 1])
 
     with col_tasks:
-        st.subheader("📋 Timings & Notes")
+        st.subheader("📋 Timings & Notes")
         for i, row in schedule_df.iterrows():
             label = f"{row['Time']} — {row['Task']} ({row['Notes']})"
             st.session_state.status_list[i] = st.checkbox(label, value=st.session_state.status_list[i], key=f"cb_{i}")
         for _ in range(ref_rows - task_count):
             st.write(" ")
 
-            def queue_reset():
-            """Clear all check-boxes immediately and request a fresh render."""
-            # 1) Clear master list and checkbox widgets now
-            st.session_state.status_list = [False] * task_count
-            for k in list(st.session_state.keys()):
-                if k.startswith("cb_"):
-                    del st.session_state[k]
-            save_state(st.session_state.status_list)
-            # 2) Flag for one clean rerun (handled at top of next cycle)
-            st.session_state["_reset_flag"] = True
+    with col_side:
+        st.subheader("📊 Progress Tracker")
+        completed = sum(st.session_state.status_list)
+        percent = (completed / task_count) * 100
+        st.metric("🌟 Progress", f"{completed}/{task_count} tasks completed", delta=f"{percent:.1f}%")
+        st.progress(percent / 100)
 
-        ...
+        csv_data = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode("utf-8")
+        colA, colB = st.columns(2)
+        with colA:
+            st.download_button("📄 Export as CSV", data=csv_data, file_name="daily_schedule.csv", mime="text/csv")
         with colB:
             st.button("🔄 Reset Tasks", on_click=queue_reset)
 
