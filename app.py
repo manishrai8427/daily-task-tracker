@@ -119,35 +119,37 @@ def main():
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
+        # ── Reset callback (only sets flag) ──────────────────
     def queue_reset():
-        st.session_state.status_list = [False] * task_count
-        for k in list(st.session_state.keys()):
-            if k.startswith("cb_"):
-                del st.session_state[k]
-        save_state(st.session_state.status_list)
-        st.rerun()
+        st.session_state["_queued_reset"] = True
 
     st.title("🗓️ Full Daily Task Tracker")
     st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
 
     col_tasks, col_side = st.columns([2, 1])
 
+    # ---------- Task check-boxes ----------
     with col_tasks:
         st.subheader("📋 Timings & Notes")
         for i, row in schedule_df.iterrows():
             label = f"{row['Time']} — {row['Task']} ({row['Notes']})"
-            st.session_state.status_list[i] = st.checkbox(label, value=st.session_state.status_list[i], key=f"cb_{i}")
+            st.session_state.status_list[i] = st.checkbox(
+                label, value=st.session_state.status_list[i], key=f"cb_{i}"
+            )
         for _ in range(ref_rows - task_count):
             st.write(" ")
 
+    # ---------- Sidebar ----------
     with col_side:
         st.subheader("📊 Progress Tracker")
         completed = sum(st.session_state.status_list)
         percent = (completed / task_count) * 100
-        st.metric("🌟 Progress", f"{completed}/{task_count} tasks completed", delta=f"{percent:.1f}%")
+        st.metric("🌟 Progress", f"{completed}/{task_count} tasks", delta=f"{percent:.1f}%")
         st.progress(percent / 100)
 
-        csv_data = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode("utf-8")
+        csv_data = schedule_df.assign(Status=st.session_state.status_list).to_csv(
+            index=False
+        ).encode("utf-8")
         colA, colB = st.columns(2)
         with colA:
             st.download_button("📄 Export as CSV", data=csv_data, file_name="daily_schedule.csv", mime="text/csv")
@@ -162,10 +164,16 @@ def main():
                 🌟 <strong>Daily Motivation:</strong> {quote_for_today()}
             </div>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
+    # ---------- Persist + handle queued reset ----------
     save_state(st.session_state.status_list)
 
-if __name__ == "__main__":
-    main()
+    if st.session_state.pop("_queued_reset", False):
+        # Clear all checkbox widget states and status list
+        for k in list(st.session_state.keys()):
+            if k.startswith("cb_") or k == "status_list":
+                del st.session_state[k]
+        save_state([False] * task_count)
+        st.experimental_rerun()
