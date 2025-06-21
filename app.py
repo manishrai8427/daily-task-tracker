@@ -1,9 +1,10 @@
 """
 Streamlit Web App – Daily Task Tracker
 -------------------------------------
-• De‑duplicated single file, robust state handling
+• Robust state handling (pads/truncates saved check‑box list)
 • Shows Reset, Export CSV, and Motivation every day (incl. Sunday)
-• New: simple padding instead of HTML wrapper ⇒ keeps weekday/Sunday columns aligned without hiding check‑boxes
+• Consistent layout across weekdays/Sunday
+• FIX: reset button now clears check‑boxes with no errors (uses on_click callback, no rerun)
 """
 
 import os
@@ -178,8 +179,9 @@ def main():
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data.copy() if is_sunday else weekday_data.copy()
     task_count = len(schedule_df)
-    max_task_count = len(weekday_data)  # 10 ⇒ height reference
+    max_task_count = len(weekday_data)  # pad height reference (10)
 
+    # ── Load / initialise checkbox state ──
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
@@ -197,9 +199,18 @@ def main():
                 value=st.session_state.status_list[i],
                 key=f"checkbox_{i}",
             )
-        # Pad with blank rows to keep height consistent
+        # Pad with blanks so Sunday column matches weekday height
         for _ in range(max_task_count - task_count):
             st.write(" ")
+
+    # —— Reset callback ——
+    def reset_tasks():
+        st.session_state.status_list = [False] * task_count
+        # remove all checkbox widget states
+        for key in list(st.session_state.keys()):
+            if key.startswith("checkbox_"):
+                del st.session_state[key]
+        save_state(st.session_state.status_list)
 
     # —— Sidebar ——
     with col_side:
@@ -213,29 +224,9 @@ def main():
         with colA:
             csv_bytes = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode()
             st.download_button("📄 Export as CSV", data=csv_bytes, file_name="daily_schedule.csv", mime="text/csv")
-
         with colB:
-            if st.button("🔄 Reset Tasks"):
-                st.session_state.status_list = [False] * task_count
-                for k in list(st.session_state.keys()):
-                    if k.startswith("checkbox_"):
-                        del st.session_state[k]
-                save_state(st.session_state.status_list)
-                st.experimental_rerun()
+            st.button("🔄 Reset Tasks", on_click=reset_tasks)
 
         st.markdown(
             f"""
-            <div style="background:#001d3d;border-radius:8px;padding:20px;margin-top:25px;
-                        color:#f0f8ff;font-style:italic;font-size:18px;text-align:center;
-                        min-height:130px;display:flex;align-items:center;justify-content:center;">
-                🌟 <strong>Daily Motivation:</strong> {quote_for_today()}
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    save_state(st.session_state.status_list)
-
-
-if __name__ == "__main__":
-    main()
+            <div style="background:#001d3d;border-radius:8px;padding:20
