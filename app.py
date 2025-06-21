@@ -159,32 +159,35 @@ def main():
     current_task_label, current_index = get_current_task_label(selected_data)
     st.success(f"✅ Current Task: {current_task_label}")
 
+    if 'status_list' not in st.session_state:
+        st.session_state.status_list = load_state(task_count)
+
     col1, col2 = st.columns([2, 1])
 
     with col1:
         st.subheader("📋 Timings & Notes")
-        status_list = load_state(task_count)
         for i in range(task_count):
             label = f"{selected_data.loc[i, 'Time']} — {selected_data.loc[i, 'Task']} ({selected_data.loc[i, 'Notes']})"
             checkbox_key = f"checkbox_{i}"
-            checked = st.checkbox(label, value=status_list[i], key=checkbox_key)
-            status_list[i] = checked
-        save_state(status_list)
+            checked = st.checkbox(label, value=st.session_state.status_list[i], key=checkbox_key)
+            st.session_state.status_list[i] = checked
+        save_state(st.session_state.status_list)
 
     with col2:
         st.subheader("📊 Progress Tracker")
-        completed = sum(status_list)
+        completed = sum(st.session_state.status_list)
         percentage = (completed / task_count) * 100 if task_count > 0 else 0
         st.metric(label="🌟 Progress", value=f"{completed}/{task_count} tasks completed", delta=f"{percentage:.2f}%")
         st.progress(percentage / 100)
 
-        csv = selected_data.assign(Status=status_list).to_csv(index=False).encode('utf-8')
+        csv = selected_data.assign(Status=st.session_state.status_list).to_csv(index=False).encode('utf-8')
         colA, colB = st.columns(2)
         with colA:
             st.download_button("📄 Export as CSV", data=csv, file_name="daily_schedule.csv", mime='text/csv')
         with colB:
             if st.button("🔄 Reset Tasks"):
-                save_state([False] * task_count)
+                st.session_state.status_list = [False] * task_count
+                save_state(st.session_state.status_list)
                 st.experimental_rerun()
 
         st.markdown(f"""
