@@ -184,5 +184,10 @@ def main():
             unsafe_allow_html=True
         )
 
+    # ── Persist state & optional rerun ──
+    save_state(st.session_state.status_list)
+    if st.session_state.pop("_needs_rerun", False):
+        st.rerun()
+
 if __name__ == "__main__":
     main()
