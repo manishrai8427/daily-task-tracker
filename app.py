@@ -100,28 +100,29 @@ def main():
     st.title("🗓️ Full Daily Task Tracker")
 
     now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%H:%M:%S")
-    current_task = get_current_task_label(initial_data)
+
+    if "data" not in st.session_state:
+        st.session_state.data = load_saved_data()
+
+    if st.session_state.get("reset_flag", False):
+        # Reset data and clear checkboxes BEFORE drawing UI
+        st.session_state.reset_flag = False
+        st.session_state.data = initial_data.copy(deep=True)
+        for key in list(st.session_state.keys()):
+            if key.startswith("checkbox_"):
+                del st.session_state[key]
+        save_data(st.session_state.data)
+        st.rerun()
+
+    df = st.session_state.data
+
+    current_task = get_current_task_label(df)
 
     col_time, col_task = st.columns([0.5, 2.5])
     with col_time:
         st.info(f"🕒 {now}")
     with col_task:
         st.success(f"✅ Current Task: {current_task}")
-
-    if "data" not in st.session_state:
-        st.session_state.data = load_saved_data()
-
-    if st.session_state.get("reset_flag", False):
-        # Clear checkbox state cleanly
-        for key in list(st.session_state.keys()):
-            if key.startswith("checkbox_"):
-                del st.session_state[key]
-        st.session_state.data = initial_data.copy(deep=True)
-        save_data(st.session_state.data)
-        st.session_state.reset_flag = False
-        st.experimental_rerun()
-
-    df = st.session_state.data
 
     col1, col2 = st.columns([2, 1])
 
@@ -153,7 +154,7 @@ def main():
         save_data(df)
 
     with col2:
-        st.subheader("📈 Progress Tracker")
+        st.subheader("📊 Progress Tracker")
         total = len(df)
         completed = sum(updated_status)
         percentage = (completed / total) * 100 if total > 0 else 0
@@ -165,7 +166,7 @@ def main():
         colA, colB = st.columns(2)
         with colA:
             st.download_button(
-                label="🗕️ Export as CSV",
+                label="🔕 Export as CSV",
                 data=csv,
                 file_name="daily_schedule.csv",
                 mime='text/csv'
@@ -173,7 +174,7 @@ def main():
         with colB:
             if st.button("🔄 Reset Tasks"):
                 st.session_state.reset_flag = True
-                st.experimental_rerun()
+                st.rerun()
 
 if __name__ == '__main__':
     main()
