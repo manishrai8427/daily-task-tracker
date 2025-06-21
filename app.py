@@ -8,12 +8,12 @@ import streamlit as st
 import pandas as pd
 import pytz
 
-# ───────── Config ─────────
+# ─────── Config ───────
 TZ = pytz.timezone("Asia/Kolkata")
 STATE_FILE = "task_state.json"
 TIME_FORMAT = "%H:%M"
 
-# ───────── Schedule Data ─────────
+# ─────── Schedule Data ───────
 weekday_data = pd.DataFrame({
     "Time": [
         "07:00–08:00", "08:00–10:00", "10:00–13:00", "13:00–15:00",
@@ -64,7 +64,7 @@ MOTIVATION_QUOTES = [
     "Turn your dreams into plans."
 ]
 
-# ───────── Utility Functions ─────────
+# ─────── Utility Functions ───────
 def quote_for_today():
     today_iso = datetime.now(TZ).date().isoformat()
     idx = int(hashlib.sha256(today_iso.encode()).hexdigest(), 16) % len(MOTIVATION_QUOTES)
@@ -92,7 +92,7 @@ def current_task_label(df):
             return f"{row['Time']} — {row['Task']}"
     return "No active task currently"
 
-# ───────── Persistence ─────────
+# ─────── Persistence ───────
 def load_state(task_count):
     if not os.path.exists(STATE_FILE):
         return [False] * task_count
@@ -107,72 +107,56 @@ def save_state(state):
     with open(STATE_FILE, "w") as f:
         json.dump({"status": state}, f)
 
-# ───────── Main App ─────────
+# ─────── Main App ───────
 def main():
     st.set_page_config(page_title="Daily Task Tracker", layout="wide")
 
     st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
 
-html, body, .stApp {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    font-family: 'Orbitron', sans-serif;
-    color: #e0e0e0;
-    background: url('https://images.unsplash.com/photo-1608477405541-7a5f755e2da6?auto=format&fit=crop&w=1400&q=80') no-repeat center center fixed;
-    background-size: cover;
-}
+    .stApp {
+        background: url('https://images.unsplash.com/photo-1608477405541-7a5f755e2da6?auto=format&fit=crop&w=1400&q=80') no-repeat center center fixed;
+        background-size: cover;
+        font-family: 'Orbitron', sans-serif;
+        color: #e0e0e0;
+    }
 
-.stApp::before {
-    content: "";
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: linear-gradient(135deg, rgba(15,15,15,0.88), rgba(28,27,42,0.93));
-    z-index: -1;
-}
+    .stApp::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: linear-gradient(135deg, rgba(15,15,15,0.88), rgba(28,27,42,0.93));
+        z-index: -1;
+    }
 
-/* Ensure background shows behind Streamlit widgets */
-[data-testid="stAppViewContainer"] {
-    background-color: transparent !important;
-}
+    [data-testid="stAppViewContainer"] > .main {
+        background: transparent !important;
+    }
 
-/* Buttons */
-.stButton > button, .stDownloadButton > button {
-    background: linear-gradient(145deg, #1c1b2a, #2a2a3d);
-    color: #00ffff;
-    border: 1px solid #00ffff;
-    border-radius: 10px;
-    font-weight: bold;
-    padding: 10px 20px;
-    transition: all 0.25s ease-in-out;
-}
-.stButton > button:hover, .stDownloadButton > button:hover {
-    background-color: #00ffff;
-    color: #000;
-    transform: scale(1.06);
-}
+    .stButton > button, .stDownloadButton > button {
+        background: linear-gradient(145deg, #1c1b2a, #2a2a3d);
+        color: #00ffff;
+        border: 1px solid #00ffff;
+        border-radius: 10px;
+        font-weight: bold;
+        padding: 10px 20px;
+        transition: all 0.25s ease-in-out;
+    }
+    .stButton > button:hover, .stDownloadButton > button:hover {
+        background-color: #00ffff;
+        color: #000;
+        transform: scale(1.06);
+    }
 
-/* Checkbox Label */
-.stCheckbox > label {
-    color: #00ffff !important;
-    font-weight: 500;
-}
-
-/* Metrics */
-.stMetric label, .stMetric div {
-    color: #00ffff !important;
-}
-
-/* Headers */
-h1, h2, h3, h4, h5, h6 {
-    color: #00ffff !important;
-    text-shadow: 0 0 12px #00ffff;
-}
-</style>
-""", unsafe_allow_html=True)
+    .stCheckbox > label,
+    h1, h2, h3, h4, h5, h6 {
+        color: #00ffff !important;
+        text-shadow: 0 0 12px #00ffff;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data if is_sunday else weekday_data
