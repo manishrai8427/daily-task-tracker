@@ -113,31 +113,36 @@ def main():
 
     st.markdown("""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
     html, body, [class*="css"]  {
-        background: linear-gradient(to bottom right, #0f0f0f, #1a1a1a);
+        background: linear-gradient(to bottom right, #0f0f0f, #1c1b2a);
         color: #e0e0e0;
-        font-family: 'Segoe UI', sans-serif;
+        font-family: 'Orbitron', sans-serif;
     }
     .stButton > button, .stDownloadButton > button {
-        background: linear-gradient(145deg, #1e1e1e, #292929);
-        color: #00f0ff;
-        border: 1px solid #00f0ff;
+        background: linear-gradient(145deg, #1c1b2a, #2a2a3d);
+        color: #00ffff;
+        border: 1px solid #00ffff;
         border-radius: 10px;
         font-weight: bold;
         padding: 10px 20px;
         transition: all 0.2s ease-in-out;
     }
     .stButton > button:hover, .stDownloadButton > button:hover {
-        background-color: #00f0ff;
+        background-color: #00ffff;
         color: #000;
         transform: scale(1.05);
     }
     .stCheckbox > label {
-        color: #00f0ff !important;
+        color: #00ffff !important;
         font-weight: 500;
     }
-    .stMetric label {
-        color: #00f0ff !important;
+    .stMetric label, .stMetric div {
+        color: #00ffff !important;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        color: #00ffff !important;
+        text-shadow: 0 0 10px #00ffff;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -156,23 +161,23 @@ def main():
         save_state(st.session_state["status_list"])
         st.session_state.pop("_do_reset")
 
-    st.title("🗓️ Full Daily Task Tracker")
+    st.title("🗡️ Solo Leveling: Daily Task Tracker")
     st.success(f"✅ Current Task: {current_task_label(schedule_df)}")
 
     col_tasks, col_side = st.columns([2, 1])
 
     with col_tasks:
-        st.subheader("📋 Timings & Notes")
+        st.subheader("📋 Dungeon Timings")
         for i, row in schedule_df.iterrows():
             label = f"{row['Time']} — {row['Task']} ({row['Notes']})"
             checked = st.checkbox(label, value=st.session_state.status_list[i], key=f"cb_{i}")
             st.session_state.status_list[i] = checked
 
     with col_side:
-        st.subheader("📊 Progress Tracker")
+        st.subheader("🔮 Progress Crystal")
         completed = sum(st.session_state.status_list)
         percent = (completed / task_count) * 100
-        st.metric("🌟 Progress", f"{completed}/{task_count} tasks completed", delta=f"{percent:.1f}%")
+        st.metric("🗡️ Quests Cleared", f"{completed}/{task_count}", delta=f"{percent:.1f}%")
         st.progress(percent / 100)
 
         def reset_tasks():
@@ -181,9 +186,9 @@ def main():
         csv_data = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode("utf-8")
         colA, colB = st.columns(2)
         with colA:
-            st.download_button("📄 Export as CSV", data=csv_data, file_name="daily_schedule.csv", mime="text/csv")
+            st.download_button("📄 Export Log", data=csv_data, file_name="daily_schedule.csv", mime="text/csv")
         with colB:
-            st.button("🔄 Reset Tasks", on_click=reset_tasks)
+            st.button("♻️ Reset Quests", on_click=reset_tasks)
 
         st.markdown(
             f"""
@@ -191,7 +196,7 @@ def main():
                         color:#00e0ff;font-style:italic;font-size:20px;text-align:center;
                         min-height:130px;display:flex;align-items:center;justify-content:center;
                         box-shadow:0 0 20px #00e0ff;'>
-                ⚔️ <strong>Daily Motivation:</strong> {quote_for_today()}
+                ⚔️ <strong>System Message:</strong> {quote_for_today()}
             </div>
             """,
             unsafe_allow_html=True,
