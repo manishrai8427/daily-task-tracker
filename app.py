@@ -4,7 +4,7 @@ Streamlit Web App – Daily Task Tracker
 • Robust state handling (pads/truncates saved check‑box list)
 • Shows Reset, Export CSV, and Motivation every day (incl. Sunday)
 • Consistent layout across weekdays/Sunday
-• FIX: reset button now clears check‑boxes with no errors (uses on_click callback, no rerun)
+• FIX: reset button now clears check‑boxes with no errors (uses on_click callback)
 """
 
 import os
@@ -22,6 +22,7 @@ TZ = pytz.timezone("Asia/Kolkata")
 STATE_FILE = "task_state.json"
 TIME_FORMAT = "%H:%M"
 
+# ---------------- Schedules -----------------
 weekday_data = pd.DataFrame(
     {
         "Time": [
@@ -80,7 +81,7 @@ sunday_data = pd.DataFrame(
             "Lazy Morning",
             "Family Breakfast",
             "Outdoor Fun / TV Time",
-            "Big Lunch + Rest",
+            "Big Lunch + Rest",
             "Hobbies / Free Time",
             "Light Planning",
             "Movie or Chill Time",
@@ -122,6 +123,7 @@ MOTIVATION_QUOTES = [
 # ─────────────────── Helper Functions ───────────────────
 
 def quote_for_today() -> str:
+    """Return a deterministic quote for the current date."""
     today_iso = datetime.now(TZ).date().isoformat()
     idx = int(hashlib.sha256(today_iso.encode()).hexdigest(), 16) % len(MOTIVATION_QUOTES)
     return MOTIVATION_QUOTES[idx]
@@ -179,9 +181,9 @@ def main():
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data.copy() if is_sunday else weekday_data.copy()
     task_count = len(schedule_df)
-    max_task_count = len(weekday_data)  # pad height reference (10)
+    max_task_count = len(weekday_data)  # 10
 
-    # ── Load / initialise checkbox state ──
+    # Initialise / correct checkbox state length
     if "status_list" not in st.session_state or len(st.session_state.status_list) != task_count:
         st.session_state.status_list = load_state(task_count)
 
@@ -199,14 +201,13 @@ def main():
                 value=st.session_state.status_list[i],
                 key=f"checkbox_{i}",
             )
-        # Pad with blanks so Sunday column matches weekday height
+        # Pad to keep Sunday height equal to weekdays
         for _ in range(max_task_count - task_count):
-            st.write(" ")
+            st.write(" ")
 
     # —— Reset callback ——
     def reset_tasks():
         st.session_state.status_list = [False] * task_count
-        # remove all checkbox widget states
         for key in list(st.session_state.keys()):
             if key.startswith("checkbox_"):
                 del st.session_state[key]
@@ -227,13 +228,13 @@ def main():
         with colB:
             st.button("🔄 Reset Tasks", on_click=reset_tasks)
 
-                st.markdown(
+        # Motivation quote card
+        st.markdown(
             f"""
-            <div style="background-color: #001d3d; border-radius: 8px; padding: 20px; margin-top: 25px;
-                        color: #f0f8ff; font-style: italic; font-size: 18px; text-align: center;
-                        min-height: 130px; display: flex; align-items: center; justify-content: center;">
+            <div style="background:#001d3d;border-radius:8px;padding:20px;margin-top:25px;
+                        color:#f0f8ff;font-style:italic;font-size:18px;text-align:center;
+                        min-height:130px;display:flex;align-items:center;justify-content:center;">
                 🌟 <strong>Daily Motivation:</strong> {quote_for_today()}
             </div>
             """,
-            unsafe_allow_html=True,
-        )
+            unsafe
