@@ -112,42 +112,34 @@ def main():
     st.set_page_config(page_title="Daily Task Tracker", layout="wide")
 
     st.markdown("""
-    <style>
+<style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
 
-html, body {
+html, body, .stApp {
     height: 100%;
     margin: 0;
     padding: 0;
     font-family: 'Orbitron', sans-serif;
     color: #e0e0e0;
-}
-
-/* --------  Background dungeon image  -------- */
-body {
     background: url('https://images.unsplash.com/photo-1608477405541-7a5f755e2da6?auto=format&fit=crop&w=1400&q=80') no-repeat center center fixed;
     background-size: cover;
-    position: relative;
 }
 
-/* Dark gradient overlay for readability */
-body::before {
+.stApp::before {
     content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(15,15,15,0.88) 0%, rgba(28,27,42,0.93) 100%);
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, rgba(15,15,15,0.88), rgba(28,27,42,0.93));
     z-index: -1;
 }
 
-/* Ensure Streamlit root container is transparent so bg shows */
-.stApp, [data-testid="stAppViewContainer"] > .main {
-    background: transparent !important;
+/* Ensure background shows behind Streamlit widgets */
+[data-testid="stAppViewContainer"] {
+    background-color: transparent !important;
 }
 
-/* ---------- Buttons / Controls ---------- */
+/* Buttons */
 .stButton > button, .stDownloadButton > button {
     background: linear-gradient(145deg, #1c1b2a, #2a2a3d);
     color: #00ffff;
@@ -163,24 +155,24 @@ body::before {
     transform: scale(1.06);
 }
 
-/* ---------- Checkbox label ---------- */
+/* Checkbox Label */
 .stCheckbox > label {
     color: #00ffff !important;
     font-weight: 500;
 }
 
-/* ---------- Metrics ---------- */
+/* Metrics */
 .stMetric label, .stMetric div {
     color: #00ffff !important;
 }
 
-/* ---------- Headings ---------- */
+/* Headers */
 h1, h2, h3, h4, h5, h6 {
     color: #00ffff !important;
     text-shadow: 0 0 12px #00ffff;
 }
 </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
     schedule_df = sunday_data if is_sunday else weekday_data
