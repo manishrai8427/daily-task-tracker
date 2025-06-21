@@ -209,16 +209,19 @@ def main():
         st.metric("🌟 Progress", f"{completed}/{task_count} tasks", delta=f"{pct:.2f}%")
         st.progress(pct / 100)
 
-        csv_bytes = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode()
-        st.download_button("📄 Export as CSV", data=csv_bytes, file_name="daily_schedule.csv", mime="text/csv")
+        colA, colB = st.columns(2)
+        with colA:
+            csv_bytes = schedule_df.assign(Status=st.session_state.status_list).to_csv(index=False).encode()
+            st.download_button("📄 Export as CSV", data=csv_bytes, file_name="daily_schedule.csv", mime="text/csv")
 
-        if st.button("🔄 Reset Tasks"):
-            st.session_state.status_list = [False] * task_count
-            for k in list(st.session_state.keys()):
-                if k.startswith("checkbox_"):
-                    del st.session_state[k]
-            save_state(st.session_state.status_list)
-            st.experimental_rerun()
+        with colB:
+            if st.button("🔄 Reset Tasks"):
+                st.session_state.status_list = [False] * task_count
+                for k in list(st.session_state.keys()):
+                    if k.startswith("checkbox_"):
+                        del st.session_state[k]
+                save_state(st.session_state.status_list)
+                st.experimental_rerun()
 
         st.markdown(
             f"""
