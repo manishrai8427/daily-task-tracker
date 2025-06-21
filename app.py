@@ -205,7 +205,7 @@ def main():
                 st.rerun()
 
         st.markdown(f"""
-        <div style="background-color: #001d3d; border-radius: 8px; padding: 12px 16px; margin-top: 25px; color: #f0f8ff; font-style: italic; font-size: 16px; text-align: center;">
+        <div style="background-color: #001d3d; border-radius: 8px; padding: 20px; margin-top: 25px; color: #f0f8ff; font-style: italic; font-size: 18px; text-align: center; min-height: 130px; display: flex; align-items: center; justify-content: center;">
             🌟 <strong>Daily Motivation:</strong> {get_quote_for_date()}
         </div>
         """, unsafe_allow_html=True)
