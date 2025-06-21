@@ -247,4 +247,5 @@ def main():
     save_state(st.session_state.status_list)
 
 
-if __name__ == "
+if __name__ == "__main__":
+    main()
