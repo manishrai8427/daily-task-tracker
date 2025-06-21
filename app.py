@@ -113,30 +113,71 @@ def main():
 
     st.markdown("""
     <style>
-    html, body, [class*="css"]  {
-      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-      color: #dff6ff;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
 
-    .stProgress > div > div > div > div {
-      background: linear-gradient(135deg, rgba(0,255,255,0.6), rgba(0,0,255,0.6));
-      box-shadow: 0 0 20px #00ffff;
-      border-radius: 10px;
-    }
+/* -------- Gradient dungeon background -------- */
+.stApp {
+    background: linear-gradient(135deg, #0a0a0f 0%, #11132b 40%, #001a33 100%) fixed;
+    font-family: 'Orbitron', sans-serif;
+    color: #e0e0e0;
+}
+.stApp::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 70%);
+    z-index: -1;
+}
+[data-testid="stAppViewContainer"] > .main {
+    background: transparent !important;
+}
 
-    .stButton>button {
-      background: rgba(0,255,255,0.1);
-      border: 1px solid #00e0ff;
-      color: #00e0ff;
-      transition: all 0.3s ease;
-    }
+/* -------- Progress bar (glowing crystal) -------- */
+.stProgress > div > div > div > div {
+    background: linear-gradient(135deg, rgba(0,255,255,0.6), rgba(0,0,255,0.6));
+    box-shadow: 0 0 20px #00ffff;
+    border-radius: 10px;
+}
 
-    .stButton>button:hover {
-      background: rgba(0,255,255,0.3);
-      color: #000;
-      border: 1px solid #00ffff;
-    }
-    </style>
+/* -------- Buttons -------- */
+.stButton > button, .stDownloadButton > button {
+    background: linear-gradient(145deg, #1c1b2a, #2a2a3d);
+    color: #00ffff;
+    border: 1px solid #00ffff;
+    border-radius: 10px;
+    font-weight: bold;
+    padding: 10px 20px;
+    transition: all 0.25s ease;
+    outline: none;
+}
+.stButton > button:hover, .stDownloadButton > button:hover {
+    background: rgba(0,255,255,0.08);
+    color: #00ffff !important;
+    border-color: #00ffff;
+    box-shadow: 0 0 14px #00ffff;
+}
+.stButton > button:hover span, .stDownloadButton > button:hover span {
+    color: #00ffff !important;
+}
+/* active / focus keep cyan */
+.stButton > button:focus, .stDownloadButton > button:focus,
+.stButton > button:active, .stDownloadButton > button:active {
+    background: rgba(0,255,255,0.08);
+    color: #00ffff !important;
+    border-color: #00ffff !important;
+    box-shadow: 0 0 14px #00ffff inset;
+    outline: none !important;
+}
+
+/* -------- Other text elements -------- */
+.stCheckbox > label { color: #00ffff !important; font-weight: 500; }
+.stMetric label, .stMetric div { color: #00ffff !important; }
+
+h1, h2, h3, h4, h5, h6 {
+    color: #00ffff !important;
+    text-shadow: 0 0 12px #00ffff;
+}
+</style>
     """, unsafe_allow_html=True)
 
     is_sunday = calendar.day_name[datetime.now(TZ).weekday()] == "Sunday"
